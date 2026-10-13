@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Diners</title>
-<meta name="theme-color" content="#0b7a5a">
+<meta name="theme-color" content="#2740e0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Diners">
@@ -13,180 +13,217 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
 <style>
-html{-webkit-text-size-adjust:100%}
-body{margin:0;padding-top:max(14px,env(safe-area-inset-top,0px))}
-
-/* Layout: one narrow column, phone first. Summary on top, budgets under it, entry sheet from a floating button. */
 :root{
-  --bg:#f2f5f3; --surface:#ffffff; --ink:#14211c; --muted:#5a6a63; --line:#dde4e0;
-  --accent:#0b7a5a; --accent-ink:#ffffff; --soft:#dff0e8; --warn:#b3432a; --warn-soft:#f8e3dd;
-  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bg:#e8ecf1; --surface:#fbfcfd; --ink:#0e1a2b; --muted:#5d6b7e; --line:#d6dde6; --field:#eef1f5;
+  --accent:#2740e0; --accent-ink:#fff; --soft:#dfe4fb;
+  --gain:#0c8a68; --loss:#cf3f2b; --loss-soft:#f9e1dc;
+  --hero-bg:#2740e0; --hero-ink:#fff; --hero-muted:rgba(255,255,255,.74); --hero-track:rgba(255,255,255,.22); --hero-fill:#fff; --hero-loss:#ffc2b6;
+  --f-display:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r-lg:22px; --r-md:14px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0e1512; --surface:#16201b; --ink:#e6efea; --muted:#92a39a; --line:#26342d;
-  --accent:#4fd1a1; --accent-ink:#04251a; --soft:#173a2e; --warn:#ff8a6b; --warn-soft:#3b211a; color-scheme:dark;}}
-:root[data-theme="dark"]{
-  --bg:#0e1512; --surface:#16201b; --ink:#e6efea; --muted:#92a39a; --line:#26342d;
-  --accent:#4fd1a1; --accent-ink:#04251a; --soft:#173a2e; --warn:#ff8a6b; --warn-soft:#3b211a; color-scheme:dark;}
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+  --bg:#0a0f19; --surface:#131a28; --ink:#e8edf6; --muted:#8e9bb0; --line:#222c3f; --field:#0f1522;
+  --accent:#8497ff; --accent-ink:#0a1030; --soft:#1b2447;
+  --gain:#4fd1a1; --loss:#ff8b73; --loss-soft:#3a1f1a;
+  --hero-bg:#1a2678; --hero-ink:#fff; --hero-muted:rgba(255,255,255,.7); --hero-track:rgba(255,255,255,.18);
+  color-scheme:dark;}}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.4;padding-inline:16px;padding-block:14px 110px}
-.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
-h1{font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--muted)}
-.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
-.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:6px 12px;border-radius:7px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
-.monthbar{display:flex;align-items:center;justify-content:space-between}
-.monthbar button{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer}
-.monthbar button:disabled{opacity:.35;cursor:default}
-.monthbar .label{font-size:18px;font-weight:600;text-transform:capitalize}
-.hero{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
-.hero .kicker{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.hero .big{font-size:40px;font-weight:500;line-height:1}
-.hero .big.neg{color:var(--warn)}
-.bar{height:10px;background:var(--soft);border-radius:6px;overflow:hidden}
-.bar>i{display:block;height:100%;background:var(--accent);border-radius:6px}
-.bar.over>i{background:var(--warn)}
-.hint{font-size:13px;color:var(--muted)}
-.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--line);padding-top:12px}
-.mini div{min-width:0}
-.mini span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.mini b{font-weight:500;font-size:15px}
-.note{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px}
-section h2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
-.cat{padding:11px 14px;display:flex;flex-direction:column;gap:6px}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;
+  padding:max(18px,env(safe-area-inset-top,0px)) 16px calc(120px + env(safe-area-inset-bottom,0px))}
+button,input{font:inherit;color:inherit}
+.col{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.col .col{margin:0;max-width:none;width:100%}
+.num{font-family:var(--f-display);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-size:19px;font-weight:700;margin:0 0 10px;letter-spacing:-.01em}
+.hint{font-size:14px;color:var(--muted)}
+.card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--line)}
+
+/* login */
+.login{min-height:calc(100dvh - 40px);justify-content:center;gap:28px}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--f-display);font-weight:700;font-size:34px;letter-spacing:-.02em}
+.brand i{width:48px;height:48px;border-radius:15px;background:var(--hero-bg);color:#fff;display:grid;place-items:center;font-style:normal;font-size:28px}
+.login p.lead{margin:-14px 0 0;color:var(--muted);font-size:17px}
+.lform{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted);font-weight:500}
+input[type=email],input[type=password],input[type=number],input[type=text],input[type=date]{
+  font-size:17px;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-md);padding:14px 14px;width:100%;min-width:0;-webkit-appearance:none;appearance:none}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--soft)}
+.btn{border:0;border-radius:var(--r-md);padding:15px 18px;font-weight:600;font-size:17px;cursor:pointer;background:var(--field);color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.55}
+.btn:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:600;font-size:15px;padding:10px;cursor:pointer;text-align:center}
+.err{color:var(--loss);font-size:14px;min-height:1.3em;font-weight:500}
+.ok{color:var(--gain)}
+
+/* month */
+.monthbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.monthbar .label{font-family:var(--f-display);font-size:26px;font-weight:700;letter-spacing:-.02em}
+.monthbar .label::first-letter{text-transform:uppercase}
+.round{border:1px solid var(--line);background:var(--surface);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;display:grid;place-items:center}
+.round:disabled{opacity:.3}
+.hero{background:var(--hero-bg);color:var(--hero-ink);border-radius:var(--r-lg);padding:22px 20px 18px;display:flex;flex-direction:column;gap:14px}
+.hero .cap{font-size:15px;color:var(--hero-muted)}
+.hero .big{font-family:var(--f-display);font-weight:700;font-size:58px;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.hero .big.neg{color:var(--hero-loss)}
+.ruler{position:relative;height:14px;border-radius:7px;background:var(--hero-track);overflow:hidden}
+.ruler i{position:absolute;inset:0 auto 0 0;background:var(--hero-fill);border-radius:7px;width:0}
+.ruler.over i{background:var(--hero-loss)}
+.ruler::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(11.111% - 2px),var(--hero-bg) calc(11.111% - 2px) 11.111%);opacity:.55;pointer-events:none}
+.ruler-scale{display:flex;justify-content:space-between;font-size:13px;color:var(--hero-muted);margin-top:-8px}
+.hero .ghint{font-size:15px;margin:0;color:var(--hero-ink)}
+.ledger{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid rgba(255,255,255,.2);padding-top:14px}
+.ledger div{min-width:0}
+.ledger span{display:block;font-size:13px;color:var(--hero-muted)}
+.ledger b{font-family:var(--f-display);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.note{background:var(--loss-soft);color:var(--loss);border-radius:var(--r-md);padding:12px 14px;font-size:14px;font-weight:500}
+.note.info{background:var(--soft);color:var(--ink)}
+
+.cat{padding:13px 16px;display:flex;flex-direction:column;gap:8px}
 .cat+.cat{border-top:1px solid var(--line)}
 .cat .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.cat .row .name{min-width:0;overflow-wrap:anywhere}
-.cat .row .val{white-space:nowrap;font-size:13px;color:var(--muted)}
-.cat .row .val b{color:var(--ink);font-weight:500}
-.cat .bar{height:6px}
-.entry{display:flex;gap:10px;align-items:center;padding:10px 14px;width:100%;text-align:left;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
-.entry+.entry,.entry-wrap+.entry-wrap{border-top:1px solid var(--line)}
+.cat .name{min-width:0;overflow-wrap:anywhere;font-weight:500}
+.cat .val{white-space:nowrap;font-size:14px;color:var(--muted)}
+.cat .val b{color:var(--ink);font-size:17px;font-weight:600}
+.bar{height:6px;background:var(--field);border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.bar.over>i{background:var(--loss)}
+.entry-wrap+.entry-wrap{border-top:1px solid var(--line)}
+.entry{display:flex;gap:12px;align-items:center;padding:12px 16px;width:100%;text-align:left;border:0;background:transparent;cursor:pointer}
+.entry .em{width:38px;height:38px;border-radius:12px;background:var(--field);display:grid;place-items:center;font-size:19px;flex:none}
 .entry .t{flex:1;min-width:0}
 .entry .t b{display:block;font-weight:500;overflow-wrap:anywhere}
-.entry .t small{color:var(--muted)}
-.entry .a{white-space:nowrap}
-.entry .a.pos{color:var(--accent)}
-.del{display:flex;gap:8px;padding:0 14px 12px}
-.del button{font:inherit;font-size:13px;border-radius:8px;padding:7px 12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
-.del button.danger{background:var(--warn);border-color:var(--warn);color:#fff}
-.empty{padding:16px 14px;color:var(--muted);font-size:14px}
-.fab{position:fixed;right:max(16px,calc(50% - 244px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:30px;border:0;background:var(--accent);color:var(--accent-ink);font-size:32px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
-.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:5}
-.sheet[hidden]{display:none}
-.panel{background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;max-height:92%;overflow:auto}
-.panel h3{margin:0;font-size:17px}
-label.f{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-input[type=number],input[type=text],input[type=date]{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-width:0}
-input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.amt{font-family:var(--f-mono);font-size:28px !important}
-.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
-.chips button{border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px;padding:9px 8px;border-radius:10px;cursor:pointer;text-align:left}
-.chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.actions{display:flex;gap:8px}
-.actions button{flex:1;font:inherit;font-size:16px;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
-.actions button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
-.err{color:var(--warn);font-size:13px;min-height:1em}
+.entry .t small{color:var(--muted);font-size:13px}
+.entry .a{white-space:nowrap;font-weight:600}
+.entry .a.pos{color:var(--gain)}
+.del{display:flex;gap:8px;padding:0 16px 14px}
+.del button{border-radius:10px;padding:9px 14px;border:0;background:var(--field);cursor:pointer;font-weight:500}
+.del button.danger{background:var(--loss);color:#fff}
+.empty{padding:20px 16px;color:var(--muted);font-size:15px}
+
+/* nav + add */
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(calc(100% - 24px),456px);
+  background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;box-shadow:0 10px 30px rgba(10,20,40,.14);z-index:4}
+.nav button{border:0;background:transparent;color:var(--muted);padding:11px 6px;border-radius:20px;font-weight:600;font-size:15px;cursor:pointer}
+.nav button[aria-current="page"]{background:var(--soft);color:var(--accent)}
+.fab{position:fixed;right:max(16px,calc(50% - 240px));bottom:calc(86px + env(safe-area-inset-bottom,0px));height:56px;padding:0 22px 0 18px;border-radius:28px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:17px;display:flex;align-items:center;gap:8px;box-shadow:0 10px 24px rgba(39,64,224,.35);cursor:pointer;z-index:4}
+.fab span{font-size:26px;line-height:1;margin-top:-2px}
+
+/* entry sheet */
+.sheet{position:fixed;inset:0;background:rgba(8,14,28,.5);display:flex;align-items:flex-end;justify-content:center;z-index:6}
+.panel{background:var(--surface);width:100%;max-width:520px;border-radius:26px 26px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;max-height:94%;overflow:auto}
+.panel h3{margin:0;font-family:var(--f-display);font-size:22px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--field);border-radius:var(--r-md);padding:4px;gap:4px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:11px;border-radius:11px;font-weight:600;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.amt{font-family:var(--f-display);font-size:34px!important;font-weight:700}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.chips button{border:1.5px solid var(--line);background:var(--surface);padding:11px 12px;border-radius:var(--r-md);cursor:pointer;text-align:left;font-size:15px}
+.chips button[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--ink);font-weight:600}
+.row2{display:flex;gap:10px}
+.row2 .btn{flex:1}
+
+/* charts / tables / settings */
 svg.chart{width:100%;height:auto;display:block}
-svg.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:9px}
-svg.chart .bpos{fill:var(--accent)} svg.chart .bneg{fill:var(--warn)}
+svg.chart text{fill:var(--muted);font-family:var(--f-body);font-size:9px}
+svg.chart .bpos{fill:var(--accent)} svg.chart .bneg{fill:var(--loss)}
 svg.chart .sel{stroke:var(--ink);stroke-width:1.5}
 svg.chart .goal{stroke:var(--muted);stroke-dasharray:3 3;stroke-width:1}
 svg.chart .zero{stroke:var(--line);stroke-width:1}
-table{width:100%;border-collapse:collapse;font-size:13px}
-td,th{padding:7px 10px;text-align:right;border-top:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:10px 12px;text-align:right;border-top:1px solid var(--line)}
 td:first-child,th:first-child{text-align:left}
-th{font-weight:500;color:var(--muted);border-top:0;font-size:11px;text-transform:uppercase}
+th{font-weight:600;color:var(--muted);border-top:0;font-size:13px}
 .scroll{overflow-x:auto}
-.settings-grid{display:grid;grid-template-columns:1fr 110px;gap:8px 12px;align-items:center;font-size:14px}
-@media (prefers-reduced-motion:no-preference){.bar>i{transition:width .3s}}
-
+.settings-grid{display:grid;grid-template-columns:1fr 112px;gap:10px 12px;align-items:center;font-size:15px}
+.settings-grid input{padding:10px 12px;font-size:16px;text-align:right}
+@media (prefers-reduced-motion:no-preference){.ruler i,.bar>i{transition:width .35s ease}}
 </style>
 </head>
 <body>
 
-
-<div class="wrap" id="login" hidden>
-  <header><h1>Diners</h1></header>
-  <form class="hero" id="lform" autocomplete="on">
-    <div class="kicker">Entra al teu compte</div>
-    <label class="f" for="email">Correu<input id="email" type="email" autocomplete="username" inputmode="email" value="marticege@gmail.com"></label>
-    <label class="f" for="pw">Contrasenya<input id="pw" type="password" autocomplete="current-password"></label>
+<main class="col login" id="login" hidden>
+  <div class="brand"><i>€</i>Diners</div>
+  <p class="lead">Entra per veure i apuntar les teves despeses.</p>
+  <form class="lform" id="lform" autocomplete="on">
+    <label class="field" for="email">Correu<input id="email" type="email" autocomplete="username" inputmode="email" value="marticege@gmail.com"></label>
+    <label class="field" for="pw">Contrasenya<input id="pw" type="password" autocomplete="current-password"></label>
     <div class="err" id="lerr" role="status"></div>
-    <div class="actions"><button type="button" id="btn-up">Crea el compte</button><button type="submit" class="primary" id="btn-in">Entra</button></div>
-    <div class="hint">Només el teu correu té accés a les dades. «Crea el compte» només cal la primera vegada.</div>
+    <button type="submit" class="btn primary" id="btn-in">Entra</button>
+    <button type="button" class="linkbtn" id="btn-up">Primera vegada? Crea el compte</button>
   </form>
-</div>
+  <p class="hint">Només aquest correu pot veure o canviar les dades.</p>
+</main>
 
-<div class="wrap" id="app" hidden>
+<div class="col" id="app" hidden>
   <div class="note" id="offline" hidden></div>
-  <header>
-    <h1>Diners</h1>
-    <div class="seg" role="group" aria-label="Vista">
-      <button id="v-mes" aria-pressed="true">Mes</button>
-      <button id="v-hist" aria-pressed="false">Històric</button>
-    </div>
-  </header>
 
-  <div id="view-mes" class="wrap" style="gap:16px">
+  <div id="view-mes" class="col" style="gap:18px">
     <div class="monthbar">
-      <button id="prev" aria-label="Mes anterior">‹</button>
+      <button class="round" id="prev" aria-label="Mes anterior">‹</button>
       <div class="label" id="mlabel"></div>
-      <button id="next" aria-label="Mes següent">›</button>
+      <button class="round" id="next" aria-label="Mes següent">›</button>
     </div>
-    <div class="hero">
-      <div class="kicker">Estalvi del mes</div>
-      <div class="big num" id="sav"></div>
-      <div class="bar" id="gbar"><i style="width:0"></i></div>
-      <div class="hint" id="ghint"></div>
-      <div class="mini">
-        <div><span>Ingressos</span><b class="num" id="s-ing"></b></div>
-        <div><span>Despeses</span><b class="num" id="s-exp"></b></div>
-        <div><span>Bizum</span><b class="num" id="s-biz"></b></div>
+    <section class="hero">
+      <div class="cap">Has estalviat</div>
+      <div class="big" id="sav"></div>
+      <div class="ruler" id="gbar" role="img" aria-label="Progrés cap a l'objectiu"><i></i></div>
+      <div class="ruler-scale"><span>0</span><span id="goal-l"></span></div>
+      <p class="ghint" id="ghint"></p>
+      <div class="ledger">
+        <div><span>Ingressos</span><b id="s-ing"></b></div>
+        <div><span>Despeses</span><b id="s-exp"></b></div>
+        <div><span>Bizum</span><b id="s-biz"></b></div>
       </div>
-    </div>
+    </section>
     <div class="note" id="note" hidden></div>
     <section>
-      <h2>Per categoria</h2>
+      <h2>On ha anat</h2>
       <div class="card" id="cats"></div>
     </section>
     <section>
-      <h2>Moviments apuntats</h2>
+      <h2>Moviments</h2>
       <div class="card" id="entries"></div>
-    </section>
-    <section>
-      <h2>Ajustos</h2>
-      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:12px">
-        <div class="settings-grid" id="settings"></div>
-        <div class="actions"><button class="primary" id="savecfg">Desa els ajustos</button></div>
-        <div class="err" id="cfgmsg" role="status"></div>
-        <div class="actions"><button id="logout" type="button">Surt</button></div>
-      </div>
     </section>
   </div>
 
-  <div id="view-hist" class="wrap" style="gap:16px" hidden>
+  <div id="view-hist" class="col" hidden>
     <section>
-      <h2>Estalvi mensual, últims 13 mesos</h2>
-      <div class="card" style="padding:12px"><svg class="chart" id="chart" viewBox="0 0 340 170" role="img" aria-label="Estalvi per mes"></svg>
-      <div class="hint" style="margin-top:6px">Línia discontínua: objectiu mensual. Toca una barra per veure el mes.</div></div>
+      <h2>Estalvi dels últims 13 mesos</h2>
+      <div class="card" style="padding:14px"><svg class="chart" id="chart" viewBox="0 0 340 170" role="img" aria-label="Estalvi per mes"></svg>
+      <div class="hint" style="margin-top:8px">La línia discontínua és l'objectiu. Toca una barra per obrir aquell mes.</div></div>
     </section>
     <section>
-      <h2>Despesa anual (12/10 → 12/10)</h2>
+      <h2>Despesa per any (12/10 → 12/10)</h2>
       <div class="card scroll" id="years"></div>
     </section>
-    <div class="note" style="background:var(--soft);color:var(--ink)">Abans del juliol de 2025 els extractes no tenen nòmines, així que només la despesa és comparable. L'estalvi real el tens des de l'octubre de 2025.</div>
+    <div class="note info">Abans de juliol de 2025 els extractes no tenen nòmines: només la despesa és comparable. L'estalvi real el tens des d'octubre de 2025.</div>
+  </div>
+
+  <div id="view-cfg" class="col" hidden>
+    <section>
+      <h2>Objectius i límits</h2>
+      <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:16px">
+        <div class="settings-grid" id="settings"></div>
+        <button class="btn primary" id="savecfg">Desa els canvis</button>
+        <div class="err" id="cfgmsg" role="status"></div>
+      </div>
+    </section>
+    <button class="btn" id="logout" type="button">Surt del compte</button>
   </div>
 </div>
 
-<button class="fab" id="fab" hidden aria-label="Apunta un moviment">+</button>
+<nav class="nav" id="nav" hidden aria-label="Seccions">
+  <button id="v-mes" aria-current="page">Mes</button>
+  <button id="v-hist">Històric</button>
+  <button id="v-cfg">Ajustos</button>
+</nav>
+<button class="fab" id="fab" hidden aria-label="Apunta un moviment"><span>+</span>Apunta</button>
 
 <div class="sheet" id="sheet" hidden>
   <form class="panel" id="form" autocomplete="off">
@@ -195,23 +232,20 @@ th{font-weight:500;color:var(--muted);border-top:0;font-size:11px;text-transform
       <button type="button" id="t-exp" aria-pressed="true">Despesa</button>
       <button type="button" id="t-inc" aria-pressed="false">Ingrés</button>
     </div>
-    <label class="f" for="amount">Import (€)
+    <label class="field" for="amount">Import en euros
       <input id="amount" class="amt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
     </label>
-    <div>
-      <div class="hint" style="margin-bottom:6px">Categoria</div>
-      <div class="chips" id="chips"></div>
-    </div>
-    <label class="f" for="concept">Concepte
+    <div class="field">Categoria<div class="chips" id="chips"></div></div>
+    <label class="field" for="concept">Concepte
       <input id="concept" type="text" placeholder="Opcional">
     </label>
-    <label class="f" for="date">Data
+    <label class="field" for="date">Data
       <input id="date" type="date">
     </label>
     <div class="err" id="ferr" role="alert"></div>
-    <div class="actions">
-      <button type="button" id="cancel">Cancel·la</button>
-      <button type="submit" class="primary" id="submit">Desa</button>
+    <div class="row2">
+      <button type="button" class="btn" id="cancel">Cancel·la</button>
+      <button type="submit" class="btn primary" id="submit">Desa</button>
     </div>
   </form>
 </div>
@@ -298,23 +332,24 @@ function renderMonth(){
   const t=totals(cur);
   const s=$('sav'); s.textContent=eur(t.sav); s.classList.toggle('neg',t.sav<0);
   const g=cfg.goal||0; const pct=g>0?Math.max(0,Math.min(1,t.sav/g)):0;
-  $('gbar').firstElementChild.style.width=(pct*100)+'%'; $('gbar').classList.toggle('over',t.sav<0);
-  $('ghint').textContent = g>0 ? (t.sav>=g ? 'Objectiu de '+eur(g)+' assolit (+'+eur(t.sav-g)+').' : 'Falten '+eur(g-t.sav)+' per arribar als '+eur(g)+'.') : '';
+  $('gbar').firstElementChild.style.width=(pct*100)+'%'; $('gbar').classList.toggle('over',t.sav<0); $('goal-l').textContent=g>0?eur(g):'';
+  $('ghint').textContent = g>0 ? (t.sav>=g ? 'Objectiu de '+eur(g)+' assolit (+'+eur(t.sav-g)+').' : t.sav<0 ? 'Aquest mes has gastat més del que has ingressat.' : 'Falten '+eur(g-t.sav)+' per arribar als '+eur(g)+'.') : '';
   $('s-ing').textContent=eur(t.ing); $('s-exp').textContent=eur(-t.exp); $('s-biz').textContent=(t.biz>=0?'+':'')+eur(t.biz);
   const note=$('note'); const noSal = !(t.by.SALARI>0);
   note.hidden=!noSal;
   if(noSal) note.textContent = cur<'2025-08' ? "Aquest mes no té nòmina als extractes: l'estalvi no és comparable, mira només la despesa." : 'Encara no hi ha cap nòmina apuntada aquest mes.';
   const rows=EXP.map(c=>({c, spent:-(t.by[c]||0), bud:cfg.budgets[c]||0})).filter(r=>Math.abs(r.spent)>0.004||r.bud>0).sort((a,b)=>b.spent-a.spent);
+  const mx=Math.max(0,...rows.map(r=>r.spent));
   $('cats').innerHTML = rows.length ? rows.map(r=>{
-    const over = r.bud>0 ? r.spent>r.bud : r.spent>0;
-    const p = r.bud>0 ? Math.min(1,Math.max(0,r.spent)/r.bud) : (r.spent>0?1:0);
-    return '<div class="cat"><div class="row"><span class="name">'+CATS[r.c].e+' '+CATS[r.c].n+'</span><span class="val num"><b>'+eur(r.spent)+'</b>'+(r.bud>0?' / '+eur(r.bud):' · sense límit')+'</span></div><div class="bar'+(over?' over':'')+'"><i style="width:'+(p*100)+'%"></i></div></div>';
-  }).join('') + (t.inv ? '<div class="cat"><div class="row"><span class="name">📈 Invertit (compta com a estalvi)</span><span class="val num"><b>'+eur(-t.inv)+'</b></span></div></div>' : '') : '<div class="empty">Encara no hi ha despeses aquest mes.</div>';
+    const over = r.bud>0 && r.spent>r.bud;
+    const p = r.bud>0 ? Math.min(1,Math.max(0,r.spent)/r.bud) : (mx>0?Math.max(0,r.spent)/mx:0);
+    return '<div class="cat"><div class="row"><span class="name">'+CATS[r.c].e+' '+CATS[r.c].n+'</span><span class="val"><b class="num">'+eur(r.spent)+'</b>'+(r.bud>0?' de '+eur(r.bud):'')+'</span></div><div class="bar'+(over?' over':'')+'"><i style="width:'+(p*100)+'%"></i></div></div>';
+  }).join('') + (t.inv ? '<div class="cat"><div class="row"><span class="name">📈 Invertit (compta com a estalvi)</span><span class="val"><b class="num">'+eur(-t.inv)+'</b></span></div></div>' : '') : '<div class="empty">Encara no hi ha despeses aquest mes.</div>';
   const list=txs.filter(x=>x.date.slice(0,7)===cur).sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
   $('entries').innerHTML = list.length ? list.map(x=>{
     const c=CATS[x.cat]||{n:x.cat,e:''}; const open = openId===x.id;
-    return '<div class="entry-wrap"><button class="entry" data-id="'+x.id+'"><span class="t"><b>'+esc(x.concept||c.n)+'</b><small>'+x.date.slice(8)+'/'+x.date.slice(5,7)+' · '+c.e+' '+c.n+'</small></span><span class="a num '+(x.amount>0?'pos':'')+'">'+(x.amount>0?'+':'')+eur(x.amount,2)+'</span></button>'+(open?'<div class="del"><button data-del="'+x.id+'" class="danger">Esborra</button><button data-keep="1">Cancel·la</button></div>':'')+'</div>';
-  }).join('') : '<div class="empty">'+(cur>=THIS?'Toca el + per apuntar el primer moviment. Fins al 12/10/2026 ja hi ha el resum per categoria.':'Aquest mes és un resum importat dels extractes; no hi ha moviments individuals.')+'</div>';
+    return '<div class="entry-wrap"><button class="entry" data-id="'+x.id+'"><span class="em">'+c.e+'</span><span class="t"><b>'+esc(x.concept||c.n)+'</b><small>'+x.date.slice(8)+'/'+x.date.slice(5,7)+' · '+c.n+'</small></span><span class="a num '+(x.amount>0?'pos':'')+'">'+(x.amount>0?'+':'')+eur(x.amount,2)+'</span></button>'+(open?'<div class="del"><button data-del="'+x.id+'" class="danger">Esborra</button><button data-keep="1">Cancel·la</button></div>':'')+'</div>';
+  }).join('') : '<div class="empty">'+(cur>=THIS?'Toca «Apunta» per afegir el primer moviment d\'aquest mes.':'Aquest mes és un resum importat dels extractes; no hi ha moviments individuals.')+'</div>';
 }
 function renderHist(){
   const ms=MONTHS().slice(-13); const vals=ms.map(m=>totals(m).sav);
@@ -353,22 +388,22 @@ function renderChips(){
 function setType(t){type=t;$('t-exp').setAttribute('aria-pressed',t==='exp');$('t-inc').setAttribute('aria-pressed',t==='inc'); cat = t==='exp'?'OCI':'SALARI'; renderChips();}
 function openSheet(){ $('date').value=ymd(new Date()); $('amount').value=''; $('concept').value=''; $('ferr').textContent=''; setType('exp'); $('sheet').hidden=false; setTimeout(()=>$('amount').focus(),50); }
 function closeSheet(){ $('sheet').hidden=true; }
-function setView(v){view=v;$('view-mes').hidden=v!=='mes';$('view-hist').hidden=v!=='hist';$('v-mes').setAttribute('aria-pressed',v==='mes');$('v-hist').setAttribute('aria-pressed',v==='hist');}
-function showLogin(msg){ $('login').hidden=false; $('app').hidden=true; $('fab').hidden=true; $('lerr').textContent=msg||''; }
-function showApp(){ $('login').hidden=true; $('app').hidden=false; $('fab').hidden=false; }
+function setView(v){view=v;['mes','hist','cfg'].forEach(k=>{$('view-'+k).hidden=v!==k; if(v===k)$('v-'+k).setAttribute('aria-current','page'); else $('v-'+k).removeAttribute('aria-current');}); $('fab').hidden=(v!=='mes'); window.scrollTo(0,0);}
+function showLogin(msg){ $('login').hidden=false; $('app').hidden=true; $('fab').hidden=true; $('nav').hidden=true; $('lerr').textContent=msg||''; }
+function showApp(){ $('login').hidden=true; $('app').hidden=false; $('nav').hidden=false; setView(view); }
 
 /* ---------- Events ---------- */
 $('prev').onclick=()=>{const ms=MONTHS();const i=ms.indexOf(cur);if(i>0){cur=ms[i-1];openId=null;renderAll();}};
 $('next').onclick=()=>{const ms=MONTHS();const i=ms.indexOf(cur);if(i<ms.length-1){cur=ms[i+1];openId=null;renderAll();}};
-$('v-mes').onclick=()=>setView('mes'); $('v-hist').onclick=()=>setView('hist');
-$('chart').addEventListener('click',e=>{const m=e.target.getAttribute&&e.target.getAttribute('data-m'); if(m){cur=m;setView('mes');renderAll();window.scrollTo(0,0);}});
+$('v-mes').onclick=()=>setView('mes'); $('v-hist').onclick=()=>setView('hist'); $('v-cfg').onclick=()=>setView('cfg');
+$('chart').addEventListener('click',e=>{const m=e.target.getAttribute&&e.target.getAttribute('data-m'); if(m){cur=m;setView('mes');renderAll();}});
 $('fab').onclick=openSheet; $('cancel').onclick=closeSheet;
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeSheet();});
 $('t-exp').onclick=()=>setType('exp'); $('t-inc').onclick=()=>setType('inc');
 $('chips').addEventListener('click',e=>{const b=e.target.closest('button[data-c]'); if(b){cat=b.getAttribute('data-c');renderChips();}});
 $('entries').addEventListener('click',async e=>{
   const d=e.target.closest('button[data-del]');
-  if(d){ const id=d.getAttribute('data-del'); try{ await api('/rest/v1/transactions?id=eq.'+encodeURIComponent(id), {method:'DELETE'}); txs=txs.filter(t=>t.id!==id); }catch(err){ $('cfgmsg').textContent='No s\'ha pogut esborrar.'; } openId=null; renderAll(); return; }
+  if(d){ const id=d.getAttribute('data-del'); try{ await api('/rest/v1/transactions?id=eq.'+encodeURIComponent(id), {method:'DELETE'}); txs=txs.filter(t=>t.id!==id); }catch(err){ alert('No s\'ha pogut esborrar. Mira la connexió.'); } openId=null; renderAll(); return; }
   if(e.target.closest('button[data-keep]')){openId=null;renderMonth();return;}
   const b=e.target.closest('button.entry'); if(b){const id=b.getAttribute('data-id'); openId = openId===id?null:id; renderMonth();}
 });
@@ -400,11 +435,11 @@ $('savecfg').onclick=async()=>{
       cfg.budgets[c]=b;
     }
     cfg.goal=goal; store.set('diners.cache', JSON.stringify({H, txs, cfg, catId}));
-    msg.style.color='var(--accent)'; msg.textContent='Ajustos desats.'; renderAll();
+    msg.style.color='var(--gain)'; msg.textContent='Canvis desats.'; renderAll();
     setTimeout(()=>{msg.textContent='';msg.style.color='';},2500);
   }catch(err){ msg.textContent='No s\'han pogut desar els ajustos.'; }
 };
-$('logout').onclick=()=>{ store.del('diners.session'); store.del('diners.cache'); session=null; showLogin('Has sortit.'); };
+$('logout').onclick=()=>{ store.del('diners.session'); store.del('diners.cache'); session=null; showLogin(''); };
 
 async function doLogin(signup){
   const email=$('email').value.trim(), pw=$('pw').value;
@@ -415,12 +450,12 @@ async function doLogin(signup){
     if(signup){
       const j = await authCall('/auth/v1/signup', {email, password:pw});
       if(j.access_token){ saveSession(j); await start(); }
-      else $('lerr').textContent='Compte creat. Confirma el correu (o digues-ho a Claude) i després prem «Entra».';
+      else $('lerr').textContent='Compte creat. Obre el correu que t\'hem enviat, confirma\'l i torna aquí a tocar «Entra».';
     } else {
       const j = await authCall('/auth/v1/token?grant_type=password', {email, password:pw});
       saveSession(j); await start();
     }
-  }catch(err){ $('lerr').textContent = /Invalid login/i.test(err.message) ? 'Correu o contrasenya incorrectes (o encara no has confirmat el compte).' : err.message; }
+  }catch(err){ $('lerr').textContent = /Invalid login/i.test(err.message) ? 'Correu o contrasenya incorrectes, o encara no has confirmat el correu.' : err.message; }
   $('btn-in').disabled=$('btn-up').disabled=false;
 }
 $('btn-in').onclick=()=>doLogin(false); $('btn-up').onclick=()=>doLogin(true);
@@ -441,5 +476,3 @@ async function start(){
   await start();
 })();
 </script>
-</body>
-</html>
