@@ -1,10 +1,11 @@
-import { LayoutDashboard, ListOrdered, Settings, LogOut, Wallet, Banknote, Landmark, TrendingUp, Sun, Moon, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, ListOrdered, TrendingUp as TrendIcon, Settings, LogOut, Wallet, Banknote, Landmark, TrendingUp, Sun, Moon, RefreshCw } from 'lucide-react';
 import { cn, eur } from '../lib/utils';
 import { Button } from './ui/button';
 
 export const NAV = [
   { id: 'dashboard', label: 'Panell', Icon: LayoutDashboard },
   { id: 'moviments', label: 'Moviments', Icon: ListOrdered },
+  { id: 'inversions', label: 'Inversions', Icon: TrendIcon },
   { id: 'config', label: 'Objectius', Icon: Settings },
 ];
 

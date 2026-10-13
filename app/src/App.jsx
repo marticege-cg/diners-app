@@ -14,6 +14,7 @@ import { TxTable } from './components/TxTable';
 import { MonthlyBars, Breakdown } from './components/Charts';
 import { InsightsCard } from './components/Insights';
 import { SettingsView } from './components/Settings';
+import { InvestmentsMini, InvestmentsView } from './components/Investments';
 import { NativeSelect } from './components/ui/input';
 import { Button } from './components/ui/button';
 
@@ -51,7 +52,12 @@ function Main({ email }) {
 
   const { cats, accounts, txs, catById, catByCode, settings, loading, error } = store;
   const goal = Number(settings.goal_monthly_savings ?? 900);
-  const bal = useMemo(() => calcBalances(accounts, txs), [accounts, txs]);
+  const bal = useMemo(() => {
+    const m = calcBalances(accounts, txs);
+    const t212 = accounts.find((a) => a.kind === 'investment');
+    if (t212 && store.inv.latest) m.set(t212.id, Number(store.inv.latest.total_value));
+    return m;
+  }, [accounts, txs, store.inv.latest]);
   const total = useMemo(() => [...bal.values()].reduce((s, v) => s + v, 0), [bal]);
   const learned = useMemo(() => buildLearned(txs, catById), [txs, catById]);
   const cur = useMemo(() => summarize(txs, catById, month, account), [txs, catById, month, account]);
@@ -108,11 +114,11 @@ function Main({ email }) {
         <main className="mx-auto max-w-[1560px] space-y-3 p-3 pb-24 lg:space-y-4 lg:p-5 lg:pb-8">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-3">
-              <h1 className="text-lg font-semibold tracking-tight">{view === 'dashboard' ? 'Panell' : view === 'moviments' ? 'Moviments' : 'Objectius i pressupost'}</h1>
+              <h1 className="text-lg font-semibold tracking-tight">{view === 'dashboard' ? 'Panell' : view === 'moviments' ? 'Moviments' : view === 'inversions' ? 'Inversions' : 'Objectius i pressupost'}</h1>
               {syncChip}
             </div>
             <div className="flex items-center gap-2">
-              {view !== 'config' && monthNav}
+              {(view === 'dashboard' || view === 'moviments') && monthNav}
               <Button variant="outline" size="icon" className="lg:hidden" onClick={() => store.reload()} aria-label="Refresca"><RefreshCw className={cn(loading && 'animate-spin')} /></Button>
             </div>
           </div>
@@ -134,6 +140,7 @@ function Main({ email }) {
               </div>
               <div className="min-w-0 space-y-3 xl:space-y-4">
                 <MonthlyBars txs={txs} catById={catById} month={month} accountId={account} goal={goal} />
+                <InvestmentsMini inv={store.inv} onOpen={() => setView('inversions')} onRefresh={store.syncInv} />
                 <Breakdown cur={cur} cats={cats} />
                 <InsightsCard remote={store.insights} auto={auto} onDismiss={store.dismissInsight} />
               </div>
@@ -144,6 +151,8 @@ function Main({ email }) {
             <Dropzone onFile={(name, buffer) => setFile({ name, buffer })} compact />
             <TxTable {...tableProps} pageSizeDefault={50} title="Tots els moviments" />
           </>)}
+
+          {view === 'inversions' && <InvestmentsView inv={store.inv} onRefresh={store.syncInv} onManual={store.addManualSnapshot} />}
 
           {view === 'config' && (
             <SettingsView cats={cats} goal={goal} setSetting={store.setSetting} setBudget={store.setBudget} summaryBudgetTotal={budgetTotal} onLogout={logout} />

@@ -22,7 +22,7 @@ async function fetchAllTx() {
 }
 
 export function useStore(enabled) {
-  const [state, setState] = useState({ cats: [], accounts: [], txs: [], settings: {}, insights: [], loading: true, error: null, loadedAt: null });
+  const [state, setState] = useState({ cats: [], accounts: [], txs: [], settings: {}, insights: [], inv: { latest: null, history: [], status: 'idle', msg: '' }, loading: true, error: null, loadedAt: null });
   const txsRef = useRef([]);
   txsRef.current = state.txs;
 
@@ -32,19 +32,23 @@ export function useStore(enabled) {
   const load = useCallback(async (quiet) => {
     if (!quiet) setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const [c, a, st, ins, txs] = await Promise.all([
+      const [c, a, st, ins, txs, il, ih] = await Promise.all([
         supabase.from('categories').select('id,code,name,emoji,kind,monthly_budget,sort').order('sort'),
         supabase.from('accounts').select('id,name,kind,opening_balance').order('id'),
         supabase.from('settings').select('key,value'),
         supabase.from('insights').select('id,kind,title,body,created_at,dismissed').eq('dismissed', false).order('created_at', { ascending: false }).limit(20),
         fetchAllTx(),
+        supabase.from('investment_snapshots').select('*').order('taken_at', { ascending: false }).limit(1),
+        supabase.from('investment_snapshots').select('taken_at,source,total_value,invested,unrealized_pl').order('taken_at', { ascending: false }).limit(400),
       ]);
       for (const r of [c, a, st, ins]) if (r.error) throw r.error;
+      const invLatest = il.error ? null : il.data?.[0] || null;
+      const invHist = ih.error ? [] : (ih.data || []).slice().reverse();
       const settings = Object.fromEntries((st.data || []).map((r) => [r.key, r.value]));
       setState((s) => {
         // Conserva les files locals que encara no s'han pogut sincronitzar
         const local = s.txs.filter((t) => t._sync === 'error' || (isTmp(t.id) && t._sync));
-        return { ...s, cats: c.data, accounts: a.data.map((x) => ({ ...x, opening_balance: Number(x.opening_balance) })), settings, insights: ins.data, txs: [...local, ...txs], loading: false, error: null, loadedAt: Date.now() };
+        return { ...s, cats: c.data, accounts: a.data.map((x) => ({ ...x, opening_balance: Number(x.opening_balance) })), settings, insights: ins.data, txs: [...local, ...txs], inv: { ...s.inv, latest: invLatest, history: invHist }, loading: false, error: null, loadedAt: Date.now() };
       });
     } catch (e) {
       setState((s) => ({ ...s, loading: false, error: e.message || String(e) }));
@@ -173,8 +177,47 @@ export function useStore(enabled) {
     await supabase.from('insights').update({ dismissed: true }).eq('id', id);
   }, []);
 
+  // ---------- Trading 212 ----------
+  const syncInv = useCallback(async (force = false) => {
+    setState((s) => ({ ...s, inv: { ...s.inv, status: 'loading', msg: '' } }));
+    try {
+      const { data, error } = await supabase.functions.invoke('trading212-sync', { body: { force } });
+      if (error) throw error;
+      if (data?.error === 'not_configured') { setState((s) => ({ ...s, inv: { ...s.inv, status: 'not_configured' } })); return; }
+      if (data?.error) {
+        const msg = { unauthorized: 'Trading 212 ha rebutjat la clau (revisa-la i els permisos).', rate_limited: 'Massa peticions a Trading 212, torna-ho a provar d\'aquí uns segons.', upstream: 'Trading 212 no respon bé.', network: 'No s\'ha pogut connectar amb Trading 212.' }[data.error] || 'Error de sincronització amb Trading 212.';
+        setState((s) => ({ ...s, inv: { ...s.inv, status: 'error', msg, latest: data.snapshot || s.inv.latest } }));
+        return;
+      }
+      const snap = data.snapshot;
+      setState((s) => {
+        const h = s.inv.history.some((x) => x.taken_at === snap.taken_at) ? s.inv.history : [...s.inv.history, { taken_at: snap.taken_at, source: snap.source, total_value: snap.total_value, invested: snap.invested, unrealized_pl: snap.unrealized_pl }];
+        return { ...s, inv: { latest: snap, history: h, status: 'ok', msg: '' } };
+      });
+    } catch (e) {
+      setState((s) => ({ ...s, inv: { ...s.inv, status: 'error', msg: 'Error de sincronització amb Trading 212.' } }));
+    }
+  }, []);
+
+  const addManualSnapshot = useCallback(async ({ invested, value }) => {
+    const row = { source: 'manual', total_value: round2(value), invested: round2(invested), current_value: round2(value), unrealized_pl: round2(value - invested), cash: 0, positions: [] };
+    const { data, error } = await supabase.from('investment_snapshots').insert(row).select().single();
+    if (error) return false;
+    setState((s) => ({ ...s, inv: { ...s.inv, latest: data, history: [...s.inv.history, { taken_at: data.taken_at, source: 'manual', total_value: data.total_value, invested: data.invested, unrealized_pl: data.unrealized_pl }] } }));
+    return true;
+  }, []);
+
+  // sincronitza en entrar i en tornar a l'app (la funció té una memòria cau d'1 minut)
+  useEffect(() => {
+    if (!enabled) return;
+    syncInv(false);
+    const onVis = () => { if (document.visibilityState === 'visible') syncInv(false); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [enabled, syncInv]);
+
   const catById = useMemo(() => new Map(state.cats.map((c) => [c.id, c])), [state.cats]);
   const catByCode = useMemo(() => new Map(state.cats.map((c) => [c.code, c])), [state.cats]);
 
-  return { ...state, catById, catByCode, reload: load, addTx, updateTx, removeTx, retryTx, retryAll, discardTx, importRows, setSetting, setBudget, dismissInsight };
+  return { ...state, catById, catByCode, reload: load, addTx, updateTx, removeTx, retryTx, retryAll, discardTx, importRows, syncInv, addManualSnapshot, setSetting, setBudget, dismissInsight };
 }
