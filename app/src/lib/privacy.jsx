@@ -2,27 +2,22 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Eye, EyeOff } from 'lucide-react';
 import { cn } from './utils';
 
-// Mode privacitat: tots els imports queden pixelats fins que es toca un import (15 s) i tornen a pixelar-se.
-export const REVEAL_MS = 15000;
-const Ctx = createContext({ revealed: false, left: 0, reveal() {}, hide() {} });
+// Mode privacitat: tots els imports queden pixelats fins que es toca un import (3 min) i tornen a pixelar-se.
+export const REVEAL_MS = 3 * 60 * 1000;
+const Ctx = createContext({ revealed: false, reveal() {}, hide() {} });
 export const usePrivacy = () => useContext(Ctx);
 
 export function PrivacyProvider({ children }) {
-  const [until, setUntil] = useState(0);
-  const [now, setNow] = useState(Date.now());
-  const revealed = until > now;
+  const [revealed, setRevealed] = useState(false);
   const ref = useRef(false);
+  const timer = useRef(null);
   ref.current = revealed;
 
-  const reveal = useCallback(() => { const n = Date.now(); setNow(n); setUntil(n + REVEAL_MS); }, []);
-  const hide = useCallback(() => setUntil(0), []);
+  const hide = useCallback(() => { clearTimeout(timer.current); setRevealed(false); }, []);
+  const reveal = useCallback(() => { clearTimeout(timer.current); setRevealed(true); timer.current = setTimeout(() => setRevealed(false), REVEAL_MS); }, []);
 
   useEffect(() => { document.documentElement.dataset.privacy = revealed ? 'visible' : 'hidden'; }, [revealed]);
-  useEffect(() => {
-    if (!revealed) return undefined;
-    const id = setInterval(() => setNow(Date.now()), 200);
-    return () => clearInterval(id);
-  }, [revealed]);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   // Primer toc sobre un import: només el descobreix (no activa l'edició ni cap altra acció)
   useEffect(() => {
@@ -39,9 +34,8 @@ export function PrivacyProvider({ children }) {
     return () => { document.removeEventListener('click', onClick, true); document.removeEventListener('visibilitychange', onVis); };
   }, [reveal, hide]);
 
-  const left = revealed ? Math.max(0, Math.ceil((until - now) / 1000)) : 0;
   return (
-    <Ctx.Provider value={{ revealed, left, reveal, hide }}>
+    <Ctx.Provider value={{ revealed, reveal, hide }}>
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true" focusable="false">
         <defs>
           <filter id="pixelate" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
@@ -61,7 +55,6 @@ export function PrivacyProvider({ children }) {
         </defs>
       </svg>
       {children}
-      <RevealPill />
     </Ctx.Provider>
   );
 }
@@ -80,20 +73,9 @@ export function maskText(str) {
 export function PrivacyToggle({ className }) {
   const { revealed, reveal, hide } = usePrivacy();
   return (
-    <button type="button" onClick={revealed ? hide : reveal} aria-label={revealed ? 'Amaga els imports' : 'Mostra els imports 15 segons'} title={revealed ? 'Amaga els imports' : 'Mostra els imports 15 s'}
+    <button type="button" onClick={revealed ? hide : reveal} aria-label={revealed ? 'Amaga els imports' : 'Mostra els imports 3 minuts'} title={revealed ? 'Amaga els imports' : 'Mostra els imports (3 min)'}
       className={cn('grid size-8 place-items-center rounded-md hover:bg-muted', revealed && 'text-warning', className)}>
       {revealed ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-    </button>
-  );
-}
-
-function RevealPill() {
-  const { revealed, left, hide } = usePrivacy();
-  if (!revealed) return null;
-  return (
-    <button type="button" onClick={hide} className="pb-safe fixed bottom-20 left-1/2 z-40 -translate-x-1/2 overflow-hidden rounded-full border border-warning/40 bg-card/95 px-4 py-1.5 text-xs font-medium shadow-lg backdrop-blur lg:bottom-5">
-      <span className="num">Imports visibles · {left} s</span><span className="ml-2 text-muted-foreground">toca per amagar</span>
-      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-warning/70" style={{ width: `${(left / (REVEAL_MS / 1000)) * 100}%`, transition: 'width .2s linear' }} />
     </button>
   );
 }
