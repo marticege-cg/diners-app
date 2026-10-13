@@ -54,7 +54,7 @@ function Main({ email }) {
   const goal = Number(settings.goal_monthly_savings ?? 900);
   const bal = useMemo(() => {
     const m = calcBalances(accounts, txs);
-    const t212 = accounts.find((a) => a.kind === 'investment');
+    const t212 = accounts.find((a) => a.kind === 'invest' || a.kind === 'investment');
     if (t212 && store.inv.latest) m.set(t212.id, Number(store.inv.latest.total_value));
     return m;
   }, [accounts, txs, store.inv.latest]);

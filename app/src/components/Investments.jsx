@@ -15,6 +15,7 @@ const ago = (iso) => {
   if (m < 1440) return `fa ${Math.round(m / 60)} h`;
   return `fa ${Math.round(m / 1440)} d`;
 };
+const cleanTicker = (t = '') => t.replace(/[a-z]?_(?:[A-Z]{2}_)?EQ$/, '');
 const pctOf = (pl, base) => (base ? (pl / base) * 100 : 0);
 const tone = (v) => (v > 0 ? 'text-success' : v < 0 ? 'text-destructive' : 'text-muted-foreground');
 const tip = { background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12, color: 'hsl(var(--foreground))' };
@@ -140,10 +141,10 @@ export function InvestmentsView({ inv, onRefresh, onManual }) {
                 <tbody>
                   {positions.map((p) => (
                     <tr key={p.ticker + p.isin} className="border-b border-border/60 hover:bg-muted/30">
-                      <td className="px-3 py-1.5"><div className="font-medium">{p.ticker}</div><div className="max-w-[180px] truncate text-[11px] text-muted-foreground">{p.name}</div></td>
+                      <td className="px-3 py-1.5"><div className="font-medium">{cleanTicker(p.ticker)}</div><div className="max-w-[180px] truncate text-[11px] text-muted-foreground">{p.name}</div></td>
                       <td className="num px-2 py-1.5 text-right">{Number(p.quantity).toLocaleString('ca-ES', { maximumFractionDigits: 4 })}</td>
-                      <td className="num px-2 py-1.5 text-right text-muted-foreground">{Number(p.avg_price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}</td>
-                      <td className="num px-2 py-1.5 text-right">{Number(p.price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}</td>
+                      <td className="num px-2 py-1.5 text-right text-muted-foreground">{Number(p.avg_price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}<div className="text-[10px] opacity-70">{p.currency}</div></td>
+                      <td className="num px-2 py-1.5 text-right">{Number(p.price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}<div className="text-[10px] opacity-70">{p.currency}</div></td>
                       <td className="num px-2 py-1.5 text-right">{eur(p.value)}</td>
                       <td className={cn('num px-3 py-1.5 text-right font-medium', tone(p.pl))}>{signed(p.pl)}<div className="text-[11px] font-normal opacity-80">{p.pl_pct >= 0 ? '+' : ''}{String(p.pl_pct).replace('.', ',')}%</div></td>
                     </tr>

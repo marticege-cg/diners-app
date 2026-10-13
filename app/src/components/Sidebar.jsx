@@ -9,7 +9,7 @@ export const NAV = [
   { id: 'config', label: 'Objectius', Icon: Settings },
 ];
 
-const ACC_ICON = { cash: Banknote, investment: TrendingUp };
+const ACC_ICON = { cash: Banknote, invest: TrendingUp, investment: TrendingUp };
 const accIcon = (a) => ACC_ICON[a.kind] || Landmark;
 
 export function AccountSelector({ accounts, balances, value, onChange, className }) {
