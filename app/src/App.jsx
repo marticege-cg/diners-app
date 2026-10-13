@@ -17,6 +17,7 @@ import { SettingsView } from './components/Settings';
 import { InvestmentsMini, InvestmentsView } from './components/Investments';
 import { NativeSelect } from './components/ui/input';
 import { Button } from './components/ui/button';
+import { PrivacyToggle } from './lib/privacy';
 
 function useTheme() {
   const [theme, setTheme] = useState(() => (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
@@ -99,13 +100,14 @@ function Main({ email }) {
           <div className="flex items-center gap-2 px-3 py-2">
             <div className="grid size-7 place-items-center rounded-md bg-primary text-sm font-bold text-primary-foreground">€</div>
             <div className="min-w-0 flex-1">
-              <div className="num text-base font-semibold leading-tight">{eur(total)}</div>
+              <div className="money num text-base font-semibold leading-tight">{eur(total)}</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Balanç total</div>
             </div>
             <NativeSelect className="h-8 w-[118px] text-xs" value={account} onChange={(e) => setAccount(e.target.value === 'all' ? 'all' : Number(e.target.value))} aria-label="Compte">
               <option value="all">Tots</option>
               {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </NativeSelect>
+            <PrivacyToggle />
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Tema">{theme === 'dark' ? <Sun /> : <Moon />}</Button>
             <Button variant="ghost" size="icon" onClick={logout} aria-label="Tanca la sessió"><LogOut /></Button>
           </div>

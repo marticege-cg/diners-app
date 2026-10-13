@@ -31,3 +31,10 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 
 select { background-image: none; }
 input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
 html:not(.dark) input[type=date]::-webkit-calendar-picker-indicator { filter: none; }
+
+/* Mode privacitat: imports pixelats fins que es toquen */
+span.money:not(.inline-flex) { display: inline-block; }
+[data-privacy="hidden"] .money { filter: url(#pixelate); user-select: none; -webkit-user-select: none; cursor: pointer; }
+[data-privacy="hidden"] .money.money-lg { filter: url(#pixelate-lg); }
+[data-privacy="hidden"] .recharts-yAxis .recharts-cartesian-axis-tick-value,
+[data-privacy="hidden"] .recharts-tooltip-wrapper { filter: url(#pixelate); }

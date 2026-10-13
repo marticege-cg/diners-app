@@ -102,7 +102,7 @@ export function TxTable({ txs, cats, catById, catByCode, accounts, accountId, mo
       <CardHeader className="flex-wrap">
         <div className="flex items-baseline gap-2">
           <CardTitle>{title}</CardTitle>
-          <span className="num text-[11px] text-muted-foreground">{rows.length} · net <span className={total < 0 ? 'text-destructive' : 'text-success'}>{eur(total)}</span></span>
+          <span className="num text-[11px] text-muted-foreground">{rows.length} · net <span className={cn('money', total < 0 ? 'text-destructive' : 'text-success')}>{eur(total)}</span></span>
         </div>
         <div className="flex flex-1 items-center justify-end gap-1.5">
           {errs > 0 && <span className="inline-flex items-center gap-1 text-[11px] font-medium text-destructive"><RotateCw className="size-3" />{errs} sense sincronitzar</span>}
@@ -176,7 +176,7 @@ export function TxTable({ txs, cats, catById, catByCode, accounts, accountId, mo
                     </div>
                   </td>
                   <td className="px-1 py-0.5">
-                    <EditableText mono align="right" value={String(t.amount).replace('.', ',')} display={<span style={{ color: t.amount > 0 ? 'hsl(var(--success))' : undefined }}>{eur(t.amount)}</span>} onCommit={(v) => commitAmount(t, v)} disabled={st === 'saving'} />
+                    <EditableText mono align="right" value={String(t.amount).replace('.', ',')} display={<span className="money" style={{ color: t.amount > 0 ? 'hsl(var(--success))' : undefined }}>{eur(t.amount)}</span>} onCommit={(v) => commitAmount(t, v)} disabled={st === 'saving'} />
                   </td>
                   <td className="px-1 py-0.5">
                     <StatusBadge status={st} />
@@ -214,7 +214,7 @@ export function TxTable({ txs, cats, catById, catByCode, accounts, accountId, mo
             <li key={t.id} className={cn('px-3 py-2', st === 'error' && 'bg-destructive/5', st === 'pending_ai' && 'bg-warning/[0.04]')}>
               <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1"><EditableText value={t.concept} onCommit={(v) => v.trim() && onUpdate(t.id, { concept: v.trim() })} disabled={st === 'saving'} className="text-[13.5px] font-medium" /></div>
-                <div className="w-[96px] shrink-0"><EditableText mono align="right" className="text-[13.5px] font-semibold" value={String(t.amount).replace('.', ',')} display={<span style={{ color: t.amount > 0 ? 'hsl(var(--success))' : undefined }}>{eur(t.amount)}</span>} onCommit={(v) => commitAmount(t, v)} disabled={st === 'saving'} /></div>
+                <div className="w-[96px] shrink-0"><EditableText mono align="right" className="text-[13.5px] font-semibold" value={String(t.amount).replace('.', ',')} display={<span className="money" style={{ color: t.amount > 0 ? 'hsl(var(--success))' : undefined }}>{eur(t.amount)}</span>} onCommit={(v) => commitAmount(t, v)} disabled={st === 'saving'} /></div>
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-1.5 px-1.5">
                 <span className="num text-[11px] text-muted-foreground">{fmtDate(t.tx_date)}{accountId === 'all' ? ` · ${accName.get(t.account_id)}` : ''}</span>

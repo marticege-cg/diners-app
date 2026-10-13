@@ -1,6 +1,7 @@
 import { LayoutDashboard, ListOrdered, TrendingUp as TrendIcon, Settings, LogOut, Wallet, Banknote, Landmark, TrendingUp, Sun, Moon, RefreshCw } from 'lucide-react';
 import { cn, eur } from '../lib/utils';
 import { Button } from './ui/button';
+import { PrivacyToggle } from '../lib/privacy';
 
 export const NAV = [
   { id: 'dashboard', label: 'Panell', Icon: LayoutDashboard },
@@ -28,7 +29,7 @@ function AccRow({ active, onClick, Icon, name, amount }) {
     <button onClick={onClick} className={cn('flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors', active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground')}>
       <Icon className="size-4 shrink-0" />
       <span className="flex-1 truncate">{name}</span>
-      {amount != null && <span className="num text-xs">{eur(amount)}</span>}
+      {amount != null && <span className="money num text-xs">{eur(amount)}</span>}
     </button>
   );
 }
@@ -54,7 +55,7 @@ export function Sidebar({ view, setView, total, accounts, balances, account, set
 
       <div className="rounded-lg border bg-card p-3">
         <div className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">Balanç consolidat</div>
-        <div className="num mt-1 text-2xl font-semibold tracking-tight">{eur(total)}</div>
+        <div className="money money-lg num mt-1 text-2xl font-semibold tracking-tight">{eur(total)}</div>
         <div className="mt-0.5 text-[11px] text-muted-foreground">{accounts.length} comptes</div>
       </div>
 
@@ -65,6 +66,7 @@ export function Sidebar({ view, setView, total, accounts, balances, account, set
 
       <div className="mt-auto flex items-center gap-1 border-t pt-3">
         <div className="min-w-0 flex-1 truncate px-1 text-[11px] text-muted-foreground" title={email}>{email}</div>
+        <PrivacyToggle />
         <Button variant="ghost" size="icon" onClick={toggleTheme} title="Canvia el tema" aria-label="Canvia el tema">{theme === 'dark' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}</Button>
         <Button variant="ghost" size="icon" onClick={onLogout} title="Tanca la sessió" aria-label="Tanca la sessió"><LogOut className="size-3.5" /></Button>
       </div>

@@ -21,22 +21,22 @@ export function Kpis({ cur, prev, goal }) {
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <Card className="p-3.5">
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Ingressos <ArrowUpRight className="size-3.5 text-success" /></div>
-        <div className="num mt-1.5 text-[26px] font-semibold leading-none tracking-tight">{eur(cur.income)}</div>
+        <div className="money money-lg num mt-1.5 text-[26px] font-semibold leading-none tracking-tight">{eur(cur.income)}</div>
         <div className="mt-2"><Delta cur={cur.income} prev={prev.income} /></div>
       </Card>
       <Card className="p-3.5">
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Despeses <ArrowDownRight className="size-3.5 text-destructive" /></div>
-        <div className="num mt-1.5 text-[26px] font-semibold leading-none tracking-tight">{eur(spent)}</div>
+        <div className="money money-lg num mt-1.5 text-[26px] font-semibold leading-none tracking-tight">{eur(spent)}</div>
         <div className="mt-2 flex flex-wrap items-center gap-x-2"><Delta cur={spent} prev={-prev.expense} invert />
-          {(cur.bizum !== 0 || cur.cash !== 0) && <span className="num text-[11px] text-muted-foreground">+ Bizum {signed(cur.bizum)} · Efectiu {signed(cur.cash)}</span>}</div>
+          {(cur.bizum !== 0 || cur.cash !== 0) && <span className="money num text-[11px] text-muted-foreground">+ Bizum {signed(cur.bizum)} · Efectiu {signed(cur.cash)}</span>}</div>
       </Card>
       <Card className="p-3.5">
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Estalvi net <PiggyBank className="size-3.5 text-primary" /></div>
-        <div className={cn('num mt-1.5 text-[26px] font-semibold leading-none tracking-tight', cur.saved < 0 && 'text-destructive')}>{eur(cur.saved)}</div>
+        <div className={cn('money money-lg num mt-1.5 text-[26px] font-semibold leading-none tracking-tight', cur.saved < 0 && 'text-destructive')}>{eur(cur.saved)}</div>
         <div className="mt-2">
           <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className={cn('h-full rounded-full', pct >= 1 ? 'bg-success' : 'bg-primary')} style={{ width: `${pct * 100}%` }} /></div>
           <div className="num mt-1 flex justify-between text-[11px] text-muted-foreground">
-            <span>{cur.rate != null ? `Taxa d'estalvi ${(cur.rate * 100).toFixed(0)}%` : 'Sense ingressos'}</span><span>Objectiu {eur(goal)}</span>
+            <span>{cur.rate != null ? `Taxa d'estalvi ${(cur.rate * 100).toFixed(0)}%` : 'Sense ingressos'}</span><span className="money">Objectiu {eur(goal)}</span>
           </div>
         </div>
       </Card>

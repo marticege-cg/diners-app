@@ -64,7 +64,7 @@ function ManualForm({ latest, onSave }) {
 function PL({ pl, base, big }) {
   const up = pl >= 0;
   return (
-    <span className={cn('num inline-flex items-center gap-1 font-semibold', tone(pl), big ? 'text-lg' : 'text-sm')}>
+    <span className={cn('money num inline-flex items-center gap-1 font-semibold', tone(pl), big ? 'money-lg text-lg' : 'text-sm')}>
       {up ? <ArrowUpRight className={big ? 'size-5' : 'size-4'} /> : <ArrowDownRight className={big ? 'size-5' : 'size-4'} />}
       {signed(pl)} <span className="font-medium opacity-80">({pctOf(pl, base) >= 0 ? '+' : ''}{pctOf(pl, base).toFixed(2).replace('.', ',')}%)</span>
     </span>
@@ -85,9 +85,9 @@ export function InvestmentsMini({ inv, onOpen, onRefresh }) {
       <CardContent>
         {s ? (
           <button onClick={onOpen} className="block w-full text-left">
-            <div className="num text-2xl font-semibold tracking-tight">{eur(s.total_value)}</div>
+            <div className="money money-lg num text-2xl font-semibold tracking-tight">{eur(s.total_value)}</div>
             <div className="mt-0.5 flex items-center gap-2"><PL pl={s.unrealized_pl} base={s.invested} /></div>
-            <div className="num mt-1 text-[11px] text-muted-foreground">Aportat {eur(s.invested)} · {s.positions?.length || 0} posicions</div>
+            <div className="money num mt-1 text-[11px] text-muted-foreground">Aportat {eur(s.invested)} · {s.positions?.length || 0} posicions</div>
           </button>
         ) : inv.status === 'loading' ? <Loader2 className="mx-auto my-4 size-5 animate-spin text-muted-foreground" /> : (
           <button onClick={onOpen} className="w-full rounded-md border border-dashed py-4 text-xs text-muted-foreground hover:bg-muted/40">Connecta Trading 212 per veure si guanyes o perds →</button>
@@ -116,12 +116,12 @@ export function InvestmentsView({ inv, onRefresh, onManual }) {
           <CardContent className="space-y-3">
             {s ? (<>
               <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
-                <div className="num text-4xl font-semibold tracking-tight">{eur(s.total_value)}</div>
+                <div className="money money-lg num text-4xl font-semibold tracking-tight">{eur(s.total_value)}</div>
                 <PL pl={s.unrealized_pl} base={s.invested} big />
               </div>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[['Aportat', eur(s.invested)], ['Valor inversions', eur(s.current_value)], ['Efectiu al broker', eur(s.cash)], ['Guany realitzat', s.realized_pl == null ? '—' : signed(s.realized_pl)]].map(([l, v]) => (
-                  <div key={l} className="rounded-md border bg-muted/30 px-2.5 py-1.5"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">{l}</div><div className="num text-sm font-semibold">{v}</div></div>
+                  <div key={l} className="rounded-md border bg-muted/30 px-2.5 py-1.5"><div className="text-[10px] uppercase tracking-wider text-muted-foreground">{l}</div><div className="money num text-sm font-semibold">{v}</div></div>
                 ))}
               </div>
             </>) : inv.status === 'loading' ? <Loader2 className="mx-auto my-6 size-6 animate-spin text-muted-foreground" /> : <p className="text-sm text-muted-foreground">Encara no hi ha dades d'inversió.</p>}
@@ -142,11 +142,11 @@ export function InvestmentsView({ inv, onRefresh, onManual }) {
                   {positions.map((p) => (
                     <tr key={p.ticker + p.isin} className="border-b border-border/60 hover:bg-muted/30">
                       <td className="px-3 py-1.5"><div className="font-medium">{cleanTicker(p.ticker)}</div><div className="max-w-[180px] truncate text-[11px] text-muted-foreground">{p.name}</div></td>
-                      <td className="num px-2 py-1.5 text-right">{Number(p.quantity).toLocaleString('ca-ES', { maximumFractionDigits: 4 })}</td>
-                      <td className="num px-2 py-1.5 text-right text-muted-foreground">{Number(p.avg_price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}<div className="text-[10px] opacity-70">{p.currency}</div></td>
-                      <td className="num px-2 py-1.5 text-right">{Number(p.price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}<div className="text-[10px] opacity-70">{p.currency}</div></td>
-                      <td className="num px-2 py-1.5 text-right">{eur(p.value)}</td>
-                      <td className={cn('num px-3 py-1.5 text-right font-medium', tone(p.pl))}>{signed(p.pl)}<div className="text-[11px] font-normal opacity-80">{p.pl_pct >= 0 ? '+' : ''}{String(p.pl_pct).replace('.', ',')}%</div></td>
+                      <td className="money num px-2 py-1.5 text-right">{Number(p.quantity).toLocaleString('ca-ES', { maximumFractionDigits: 4 })}</td>
+                      <td className="money num px-2 py-1.5 text-right text-muted-foreground">{Number(p.avg_price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}<div className="text-[10px] opacity-70">{p.currency}</div></td>
+                      <td className="money num px-2 py-1.5 text-right">{Number(p.price).toLocaleString('ca-ES', { maximumFractionDigits: 2 })}<div className="text-[10px] opacity-70">{p.currency}</div></td>
+                      <td className="money num px-2 py-1.5 text-right">{eur(p.value)}</td>
+                      <td className={cn('money num px-3 py-1.5 text-right font-medium', tone(p.pl))}>{signed(p.pl)}<div className="text-[11px] font-normal opacity-80">{p.pl_pct >= 0 ? '+' : ''}{String(p.pl_pct).replace('.', ',')}%</div></td>
                     </tr>
                   ))}
                 </tbody>

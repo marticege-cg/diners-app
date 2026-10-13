@@ -29,7 +29,7 @@ export function MonthlyBars({ txs, catById, month, accountId, goal }) {
           </ResponsiveContainer>
         </div>
         <div className="num mt-1 flex justify-between text-[11px] text-muted-foreground">
-          {data.map((d) => <span key={d.m} className={d.Estalvi >= goal ? 'text-success' : d.Estalvi < 0 ? 'text-destructive' : ''} title={`Estalvi ${d.m}`}>{eur0(d.Estalvi)}</span>)}
+          {data.map((d) => <span key={d.m} className={'money ' + (d.Estalvi >= goal ? 'text-success' : d.Estalvi < 0 ? 'text-destructive' : '')} title={`Estalvi ${d.m}`}>{eur0(d.Estalvi)}</span>)}
         </div>
         <div className="text-center text-[10px] uppercase tracking-wider text-muted-foreground">estalvi net per mes</div>
       </CardContent>
@@ -44,7 +44,7 @@ export function Breakdown({ cur, cats }) {
   const total = rows.reduce((s, r) => s + r.value, 0);
   return (
     <Card>
-      <CardHeader><CardTitle>Desglossament de despeses</CardTitle><span className="num text-[11px] text-muted-foreground">{eur0(total)}</span></CardHeader>
+      <CardHeader><CardTitle>Desglossament de despeses</CardTitle><span className="money num text-[11px] text-muted-foreground">{eur0(total)}</span></CardHeader>
       <CardContent>
         {rows.length === 0 ? <p className="py-6 text-center text-xs text-muted-foreground">Sense despeses aquest mes.</p> : (
           <div className="flex items-center gap-3">
@@ -65,7 +65,7 @@ export function Breakdown({ cur, cats }) {
                   <li key={r.code} className="flex items-center gap-1.5 text-[12px]">
                     <span className="size-2 shrink-0 rounded-full" style={{ background: catColor(r.code) }} />
                     <span className="min-w-0 flex-1 truncate">{r.name}</span>
-                    <span className={`num ${over ? 'font-semibold text-destructive' : ''}`}>{eur0(r.value)}</span>
+                    <span className={`money num ${over ? 'font-semibold text-destructive' : ''}`}>{eur0(r.value)}</span>
                     <span className="num w-8 text-right text-[10.5px] text-muted-foreground">{Math.round((r.value / total) * 100)}%</span>
                   </li>
                 );

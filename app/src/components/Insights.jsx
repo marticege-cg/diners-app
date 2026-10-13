@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, Info, Sparkles, X, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { cn } from '../lib/utils';
+import { maskText } from '../lib/privacy';
 
 const TONE = {
   alert: { Icon: AlertTriangle, cls: 'border-destructive/30 bg-destructive/5', ic: 'text-destructive' },
@@ -34,8 +35,8 @@ export function InsightsCard({ remote, auto, onDismiss }) {
             <div key={n.id || i} className={cn('flex gap-2 rounded-md border p-2.5', t.cls)}>
               <t.Icon className={cn('mt-0.5 size-3.5 shrink-0', t.ic)} />
               <div className="min-w-0 flex-1">
-                <div className="text-[12.5px] font-medium leading-snug">{n.title}{n.remote && <span className="ml-1.5 rounded bg-primary/15 px-1 text-[9.5px] font-semibold uppercase text-primary">Claude</span>}</div>
-                {n.body && <div className="mt-0.5 whitespace-pre-line text-[11.5px] leading-snug text-muted-foreground">{n.body}</div>}
+                <div className="text-[12.5px] font-medium leading-snug">{maskText(n.title)}{n.remote && <span className="ml-1.5 rounded bg-primary/15 px-1 text-[9.5px] font-semibold uppercase text-primary">Claude</span>}</div>
+                {n.body && <div className="mt-0.5 whitespace-pre-line text-[11.5px] leading-snug text-muted-foreground">{maskText(n.body)}</div>}
               </div>
               {n.remote && <button className="h-5 shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted" onClick={() => onDismiss(n.id)} aria-label="Descarta"><X className="size-3.5" /></button>}
             </div>

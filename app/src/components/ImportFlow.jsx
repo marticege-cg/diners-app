@@ -124,7 +124,7 @@ export function MappingModal({ file, onClose, store, accountId }) {
   const stat = (label, value, tone) => (
     <div className="rounded-md border bg-muted/30 px-2.5 py-1.5">
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className={cn('num text-sm font-semibold', tone)}>{value}</div>
+      <div className={cn('num text-sm font-semibold', tone, label === 'Net' && 'money')}>{value}</div>
     </div>
   );
 
@@ -199,7 +199,7 @@ export function MappingModal({ file, onClose, store, accountId }) {
                                 </select>
                               </div>
                             </td>
-                            <td className={cn('num px-2 py-1 text-right', r.amount > 0 && 'text-success')}>{eur(r.amount)}</td>
+                            <td className={cn('money num px-2 py-1 text-right', r.amount > 0 && 'text-success')}>{eur(r.amount)}</td>
                             <td className="px-2 py-1 text-right text-[10.5px]">{r.dup ? <span className="text-muted-foreground">duplicat</span> : !r.certain ? <span className="text-warning">IA</span> : null}</td>
                           </tr>
                         );
