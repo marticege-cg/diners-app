@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 98%; --foreground: 240 10% 8%;
+  --card: 0 0% 100%; --card-foreground: 240 10% 8%;
+  --muted: 240 5% 94%; --muted-foreground: 240 4% 40%;
+  --border: 240 6% 88%; --input: 240 6% 84%; --ring: 231 80% 58%;
+  --cat-mix: 62%;
+  --primary: 231 80% 56%; --primary-foreground: 0 0% 100%;
+  --destructive: 0 72% 50%; --success: 152 62% 34%; --warning: 36 92% 40%;
+}
+.dark {
+  --cat-mix: 100%;
+  --background: 240 10% 4%; --foreground: 0 0% 94%;
+  --card: 240 6% 7%; --card-foreground: 0 0% 94%;
+  --muted: 240 5% 12%; --muted-foreground: 240 5% 62%;
+  --border: 240 4% 16%; --input: 240 4% 20%; --ring: 231 85% 66%;
+  --primary: 231 85% 64%; --primary-foreground: 0 0% 100%;
+  --destructive: 0 70% 58%; --success: 152 58% 48%; --warning: 38 92% 56%;
+}
+* { border-color: hsl(var(--border)); }
+html, body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
+body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; font-feature-settings: 'tnum' 1, 'cv11' 1; overscroll-behavior-y: none; }
+.num { font-variant-numeric: tabular-nums; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 8px; }
+.pb-safe { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+.pt-safe { padding-top: env(safe-area-inset-top); }
+select { background-image: none; }
+input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+html:not(.dark) input[type=date]::-webkit-calendar-picker-indicator { filter: none; }
