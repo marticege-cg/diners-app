@@ -5,7 +5,7 @@ import { useStore } from './lib/useStore';
 import { balances as calcBalances, summarize, autoInsights } from './lib/finance';
 import { buildLearned } from './lib/categorize';
 import { cn, eur, monthLabel, shiftMonth, todayISO, monthOf } from './lib/utils';
-import { Login } from './components/Login';
+import { Login, NewPassword } from './components/Login';
 import { Sidebar, BottomNav, AccountSelector } from './components/Sidebar';
 import { Kpis } from './components/Kpis';
 import { QuickAdd } from './components/QuickAdd';
@@ -32,13 +32,19 @@ function useTheme() {
 
 export default function App() {
   const [session, setSession] = useState(undefined);
+  // Enllaç de recuperació de contrasenya: cal demanar-ne una de nova abans d'entrar
+  const [recovery, setRecovery] = useState(() => /type=recovery/.test(window.location.hash));
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session || null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s || null));
+    const { data: sub } = supabase.auth.onAuthStateChange((e, s) => {
+      if (e === 'PASSWORD_RECOVERY') setRecovery(true);
+      setSession(s || null);
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
   if (session === undefined) return <div className="grid min-h-screen place-items-center"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>;
   if (!session) return <Login />;
+  if (recovery) return <NewPassword onDone={() => { setRecovery(false); history.replaceState(null, '', window.location.pathname); }} />;
   return <Main email={session.user.email} />;
 }
 
