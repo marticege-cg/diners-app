@@ -144,6 +144,7 @@ export function useStore(enabled) {
   /** Importació massiva per lots. Retorna {inserted, failed}. */
   const importRows = useCallback(async (rows, onProgress) => {
     let inserted = 0, failed = 0;
+    const ids = [];
     const size = 400;
     for (let i = 0; i < rows.length; i += size) {
       const chunk = rows.slice(i, i + size).map((r) => ({ source: 'import', ...r, amount: round2(r.amount) }));
@@ -153,11 +154,12 @@ export function useStore(enabled) {
         setTxs((ts) => [...chunk.map((p) => ({ id: newTmp(), created_at: new Date().toISOString(), ...p, _sync: 'error', _pending: { type: 'insert', payload: p } })), ...ts]);
       } else {
         inserted += data.length;
+        ids.push(...data.map((d) => d.id));
         setTxs((ts) => [...data.map((d) => ({ ...d, amount: Number(d.amount) })), ...ts]);
       }
       onProgress?.(Math.min(i + size, rows.length), rows.length);
     }
-    return { inserted, failed };
+    return { inserted, failed, ids };
   }, [setTxs]);
 
   const setSetting = useCallback(async (key, value) => {

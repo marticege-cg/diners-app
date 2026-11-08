@@ -180,7 +180,7 @@ function Main({ email }) {
       </div>
 
       <BottomNav view={view} setView={setView} />
-      {file && <MappingModal file={file} onClose={() => setFile(null)} store={importStore} accountId={account} />}
+      {file && !loading && accounts.length > 0 && <MappingModal file={file} onClose={() => setFile(null)} store={importStore} accountId={account} />}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Loader2, Sparkles, UploadCloud } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input, NativeSelect, Label } from './ui/input';
@@ -9,6 +9,7 @@ import { cn, eur, fmtDate } from '../lib/utils';
 import { decodeBuffer, parseCsv, guessMapping, guessDateFormat, parseDate, guessNumberFormat, parseAmount } from '../lib/csv';
 import { categorize, normConcept, cleanConcept } from '../lib/categorize';
 import { ACCEPT, isSupported, fileToCsvBuffer } from '../lib/files';
+import { supabase } from '../lib/supabase';
 
 export function Dropzone({ onFile, compact }) {
   const [over, setOver] = useState(false);
@@ -57,9 +58,13 @@ export function MappingModal({ file, onClose, store, accountId }) {
     const m = saved && saved.date < headers.length ? { ...g, ...saved.map } : g;
     const dateFmt = saved?.dateFmt || guessDateFormat(rows.map((r) => r[m.date]));
     const numFmt = saved?.numFmt || guessNumberFormat(rows.map((r) => r[m.amount >= 0 ? m.amount : m.debit >= 0 ? m.debit : m.credit]));
+    const iban = (meta.replace(/\s+/g, '').match(/ES\d{22}/i) || [])[0]?.toUpperCase() || null;
+    let ibanAcc = null;
+    try { ibanAcc = iban ? Number(localStorage.getItem('diners-iban:' + iban)) || null : null; } catch { /* ignore */ }
     const hay = (meta + ' ' + file.name).toLowerCase();
     const guessAcc = accounts.find((a) => hay.includes(a.name.toLowerCase())) || accounts.find((a) => a.name.toLowerCase().split(' ').some((w) => w.length > 3 && w !== 'compte' && hay.includes(w)));
-    return { m, dateFmt, numFmt, acc: guessAcc?.id ?? (accountId !== 'all' ? accountId : 2) };
+    const known = !!(ibanAcc && accounts.some((a) => a.id === ibanAcc)) || !!guessAcc;
+    return { m, dateFmt, numFmt, iban, known, acc: (ibanAcc && accounts.some((a) => a.id === ibanAcc) ? ibanAcc : null) ?? guessAcc?.id ?? (accountId !== 'all' ? accountId : 2) };
   }, []); // eslint-disable-line
 
   const [map, setMap] = useState(init.m);
@@ -127,18 +132,35 @@ export function MappingModal({ file, onClose, store, accountId }) {
   const mapOk = map.date >= 0 && map.concept >= 0 && (map.amount >= 0 || map.debit >= 0 || map.credit >= 0);
   const setCol = (k) => (e) => setMap((m) => ({ ...m, [k]: Number(e.target.value), ...(k === 'amount' && Number(e.target.value) >= 0 ? { debit: -1, credit: -1 } : {}) }));
 
-  async function run() {
+  async function run(auto = false) {
     setPhase('saving');
     saveMap(sig, { map, dateFmt, numFmt });
+    try { if (init.iban) localStorage.setItem('diners-iban:' + init.iban, String(acc)); } catch { /* ignore */ }
     const payload = toImport.map((r) => ({
       tx_date: r.date, concept: r.concept, amount: r.amount, account_id: Number(acc),
-      category_id: catByCode.get(r.code)?.id ?? catByCode.get('OCI').id, status: r.certain ? 'saved' : 'pending_ai',
+      category_id: catByCode.get(r.code)?.id ?? catByCode.get('OCI').id, status: auto || r.certain ? 'saved' : 'pending_ai',
     }));
     const res = await importRows(payload, (d, t) => setProg([d, t]));
     // l'apunt del banc mana: s'esborren les entrades manuals que representaven el mateix pagament
-    if (res && !res.failed) for (const r of toReplace) await store.removeTx(r.replaces.id);
-    setResult(res); setPhase('done');
+    const removed = [];
+    if (res && !res.failed) for (const r of toReplace) { removed.push(r.replaces); await store.removeTx(r.replaces.id); }
+    setResult({ ...res, removed, auto, dups, skipped: processed.invalid }); setPhase('done');
   }
+
+  async function undo() {
+    setPhase('saving');
+    if (result.ids?.length) await supabase.from('transactions').delete().in('id', result.ids);
+    for (const t of result.removed || []) await store.addTx({ tx_date: t.tx_date, concept: t.concept, amount: t.amount, account_id: t.account_id, category_id: t.category_id, source: 'manual', status: t.status });
+    await store.reload();
+    onClose();
+  }
+
+  // Mode automàtic: si el fitxer es llegeix amb confiança i el compte és conegut, s'importa sol
+  const autoOk = init.known && mapOk && processed.rows.length > 0 && processed.invalid <= Math.max(3, Math.ceil(rows.length * 0.1));
+  const started = useRef(false);
+  useEffect(() => {
+    if (phase === 'map' && autoOk && !started.current) { started.current = true; run(true); }
+  }, [phase, autoOk]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stat = (label, value, tone) => (
     <div className="rounded-md border bg-muted/30 px-2.5 py-1.5">
@@ -151,10 +173,14 @@ export function MappingModal({ file, onClose, store, accountId }) {
     <Dialog open onOpenChange={(o) => { if (!o && phase !== 'saving') onClose(); }}>
       <DialogContent className="max-w-[920px]" title={`Importa ${file.name}`}
         description={phase === 'map' ? 'Revisa com es llegeixen les columnes. No es desa res fins que premis «Importa».' : undefined}>
-        {phase === 'done' ? (
+        {phase === 'map' && autoOk ? (
+          <div className="flex flex-col items-center gap-3 px-6 py-12 text-center"><Loader2 className="size-8 animate-spin text-primary" /><div className="text-sm text-muted-foreground">Important…</div></div>
+        ) : phase === 'done' ? (
           <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
             {result.failed ? <AlertTriangle className="size-10 text-warning" /> : <CheckCircle2 className="size-10 text-success" />}
-            <div className="text-lg font-semibold">{result.inserted} moviments importats</div>
+            <div className="text-lg font-semibold">{result.inserted === 0 && result.dups > 0 ? 'Tot això ja ho tenies: no hi ha res de nou' : `${result.inserted} moviments importats`}</div>
+            {(result.dups > 0 || result.removed?.length > 0) && result.inserted > 0 && <p className="max-w-md text-sm text-muted-foreground">{result.dups > 0 && `${result.dups} ja hi eren i s'han omès. `}{result.removed?.length > 0 && `${result.removed.length} entrades manuals s'han substituït per les del banc.`}</p>}
+            {result.inserted > 0 && !result.failed && <Button variant="outline" size="sm" onClick={undo}>Desfés la importació</Button>}
             {result.failed > 0 && <p className="max-w-md text-sm text-destructive">{result.failed} no s'han pogut sincronitzar. Els veuràs a la taula amb «Error de sincronització» i els pots reintentar.</p>}
             {pending > 0 && <p className="max-w-md text-sm text-muted-foreground"><Sparkles className="mr-1 inline size-3.5 text-warning" />{pending} han quedat «Pendents de revisar per IA». Demana a Claude que els categoritzi.</p>}
             <Button onClick={onClose}>Tanca</Button>
