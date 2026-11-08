@@ -32,7 +32,7 @@ export function SettingsView({ cats, goal, cycleOn, cutoff, netOn, setSetting, s
           </label>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" checked={netOn} onChange={(e) => setSetting('net_refunds', e.target.checked)} />
-            <span>Anivella els reemborsaments<br /><span className="text-xs text-muted-foreground">Si pagues 100 € i et fan un Bizum de 100 € (fins a 2 setmanes després, d'un mínim de 10 €), tots dos s'anul·len: no compten com a despesa ni com a ingrés.</span></span>
+            <span>Anivella els reemborsaments<br /><span className="text-xs text-muted-foreground">Si compres algo per a algú i et fan un Bizum del que els has comprat (sencer o una part), es resta de la despesa: no la infla ni compta com a ingrés. L'estalvi no canvia.</span></span>
           </label>
           {cycleOn && (
             <div className="flex items-center gap-2 text-sm">

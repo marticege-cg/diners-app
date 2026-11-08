@@ -6,16 +6,17 @@ export function summarize(txs, catById, month, accountId) {
   for (const t of txs) {
     if ((t._m || monthOf(t.tx_date)) !== month) continue;
     if (accountId && accountId !== 'all' && t.account_id !== accountId) continue;
-    if (t._net) continue; // anivellat amb un reemborsament
+    if (t._net) continue; // anivellat del tot amb un reemborsament
     const c = catById.get(t.category_id);
+    const amt = t._eff ?? t.amount; // despesa menys el que t'han tornat
     if (!c) continue;
     r.count++;
     switch (c.kind) {
-      case 'income': r.income += t.amount; break;
-      case 'expense': r.expense += t.amount; r.byCat.set(c.code, (r.byCat.get(c.code) || 0) + t.amount); break;
-      case 'bizum': r.bizum += t.amount; break;
-      case 'cash': r.cash += t.amount; break;
-      case 'investment': r.invest += t.amount; break;
+      case 'income': r.income += amt; break;
+      case 'expense': r.expense += amt; r.byCat.set(c.code, (r.byCat.get(c.code) || 0) + amt); break;
+      case 'bizum': r.bizum += amt; break;
+      case 'cash': r.cash += amt; break;
+      case 'investment': r.invest += amt; break;
       default: break;
     }
   }
