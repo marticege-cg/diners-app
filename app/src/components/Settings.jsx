@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { eur0 } from '../lib/utils';
 
-export function SettingsView({ cats, goal, setSetting, setBudget, summaryBudgetTotal, onLogout }) {
+export function SettingsView({ cats, goal, cycleOn, cutoff, setSetting, setBudget, summaryBudgetTotal, onLogout }) {
   const [g, setG] = useState(String(goal));
   const [saved, setSaved] = useState(false);
   useEffect(() => setG(String(goal)), [goal]);
@@ -21,6 +21,23 @@ export function SettingsView({ cats, goal, setSetting, setBudget, summaryBudgetT
           </div>
           <p className="text-xs text-muted-foreground">Es mostra a la targeta d'estalvi i a les insights.</p>
           <div className="border-t pt-3"><Button variant="outline" onClick={onLogout}>Tanca la sessió</Button></div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle>Mes comptable</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" className="mt-1" checked={cycleOn} onChange={(e) => setSetting('salary_cycle', e.target.checked)} />
+            <span>Cada mes comença quan arriba la nòmina<br /><span className="text-xs text-muted-foreground">Una nòmina del 31 d'octubre compta pel novembre: ingressos i despeses es mesuren des d'aquell dia fins a la nòmina següent.</span></span>
+          </label>
+          {cycleOn && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Una nòmina a partir del dia</span>
+              <Input inputMode="numeric" className="num h-8 w-16 text-right" defaultValue={cutoff} aria-label="Dia de tall"
+                onBlur={(e) => { const n = Math.min(28, Math.max(6, Number(e.target.value) || 25)); e.target.value = n; if (n !== cutoff) setSetting('salary_cutoff_day', n); }} />
+              <span className="text-muted-foreground">compta pel mes següent</span>
+            </div>
+          )}
         </CardContent>
       </Card>
       <Card>

@@ -44,7 +44,7 @@ export function TxTable({ txs, cats, catById, catByCode, accounts, accountId, mo
       if (accountId !== 'all' && t.account_id !== accountId) return false;
       const c = catById.get(t.category_id);
       if (f.hideTransfers && c?.code === 'TRANSFER' && !f.cat) return false;
-      if (f.period === 'month' && !f.from && !f.to && monthOf(t.tx_date) !== month) return false;
+      if (f.period === 'month' && !f.from && !f.to && (t._m || monthOf(t.tx_date)) !== month) return false;
       if (f.from && t.tx_date < f.from) return false;
       if (f.to && t.tx_date > f.to) return false;
       if (f.cat && c?.code !== f.cat) return false;

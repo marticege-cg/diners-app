@@ -4,7 +4,7 @@ import { round2, monthOf, shiftMonth, daysInMonth } from './utils';
 export function summarize(txs, catById, month, accountId) {
   const r = { income: 0, expense: 0, bizum: 0, cash: 0, invest: 0, count: 0, byCat: new Map() };
   for (const t of txs) {
-    if (monthOf(t.tx_date) !== month) continue;
+    if ((t._m || monthOf(t.tx_date)) !== month) continue;
     if (accountId && accountId !== 'all' && t.account_id !== accountId) continue;
     const c = catById.get(t.category_id);
     if (!c) continue;
@@ -36,19 +36,19 @@ export function balances(accounts, txs) {
 }
 
 /** Alertes automàtiques calculades al client (a més de les que escriu Claude a la BD). */
-export function autoInsights({ txs, cats, catById, month, goal, accountId }) {
+export function autoInsights({ txs, cats, catById, month, goal, accountId, current }) {
   const out = [];
   const cur = summarize(txs, catById, month, accountId);
-  const dim = daysInMonth(month);
   const today = new Date();
-  const isCurrent = month === `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-  const day = isCurrent ? today.getDate() : dim;
+  const isCurrent = month === (current || `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`);
+  const [my, mm] = month.split('-').map(Number);
+  const daysLeft = isCurrent ? Math.max(0, Math.ceil((new Date(my, mm, 0, 23, 59) - today) / 86400000)) : 0;
 
   if (goal > 0) {
     const left = round2(goal - cur.saved);
     out.push(left <= 0
       ? { kind: 'good', title: 'Objectiu d\'estalvi assolit', body: `Portes ${cur.saved.toFixed(0)} € estalviats aquest mes (objectiu ${goal} €).` }
-      : { kind: cur.saved < 0 ? 'alert' : 'info', title: `Et falten ${left.toFixed(0)} € per a l'objectiu`, body: `Estalvi del mes: ${cur.saved.toFixed(0)} € de ${goal} €. ${isCurrent ? `Queden ${dim - day} dies de mes.` : ''}` });
+      : { kind: cur.saved < 0 ? 'alert' : 'info', title: `Et falten ${left.toFixed(0)} € per a l'objectiu`, body: `Estalvi del mes: ${cur.saved.toFixed(0)} € de ${goal} €. ${isCurrent && daysLeft > 0 ? `Queden ${daysLeft} dies de mes.` : ''}` });
   }
   for (const c of cats) {
     if (c.kind !== 'expense' || !(c.monthly_budget > 0)) continue;

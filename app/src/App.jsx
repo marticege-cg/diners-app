@@ -18,6 +18,7 @@ import { InvestmentsMini, InvestmentsView } from './components/Investments';
 import { NativeSelect } from './components/ui/input';
 import { Button } from './components/ui/button';
 import { PrivacyToggle } from './lib/privacy';
+import { makePeriods } from './lib/period';
 
 function useTheme() {
   const [theme, setTheme] = useState(() => (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
@@ -53,11 +54,16 @@ function Main({ email }) {
   const [theme, toggleTheme] = useTheme();
   const [view, setView] = useState('dashboard');
   const [account, setAccount] = useState('all');
-  const [month, setMonth] = useState(todayISO().slice(0, 7));
+  const [monthSel, setMonth] = useState(null);
   const [file, setFile] = useState(null);
   const logout = () => supabase.auth.signOut();
 
-  const { cats, accounts, txs, catById, catByCode, settings, loading, error } = store;
+  const { cats, accounts, txs: rawTxs, catById, catByCode, settings, loading, error } = store;
+  const cycleOn = settings.salary_cycle !== false;
+  const cutoff = Number(settings.salary_cutoff_day ?? 25);
+  const per = useMemo(() => makePeriods(rawTxs, catById, { enabled: cycleOn, cutoff }), [rawTxs, catById, cycleOn, cutoff]);
+  const txs = useMemo(() => per.tag(rawTxs), [per, rawTxs]);
+  const month = monthSel ?? per.current;
   const goal = Number(settings.goal_monthly_savings ?? 900);
   const bal = useMemo(() => {
     const m = calcBalances(accounts, txs);
@@ -69,12 +75,12 @@ function Main({ email }) {
   const learned = useMemo(() => buildLearned(txs, catById), [txs, catById]);
   const cur = useMemo(() => summarize(txs, catById, month, account), [txs, catById, month, account]);
   const prev = useMemo(() => summarize(txs, catById, shiftMonth(month, -1), account), [txs, catById, month, account]);
-  const auto = useMemo(() => autoInsights({ txs, cats, catById, month, goal, accountId: account }), [txs, cats, catById, month, goal, account]);
+  const auto = useMemo(() => autoInsights({ txs, cats, catById, month, goal, accountId: account, current: per.current }), [txs, cats, catById, month, goal, account, per]);
   const budgetTotal = cats.filter((c) => c.kind === 'expense').reduce((s, c) => s + (c.monthly_budget || 0), 0);
 
   const nErr = txs.filter((t) => t._sync === 'error').length;
   const nPend = txs.filter((t) => t.status === 'pending_ai').length;
-  const nowMonth = todayISO().slice(0, 7);
+  const nowMonth = per.current;
   const importStore = { ...store, learned };
 
   const tableProps = { txs, cats, catById, catByCode, accounts, accountId: account, month, onUpdate: store.updateTx, onRemove: store.removeTx, onRetry: store.retryTx, onDiscard: store.discardTx };
@@ -82,7 +88,10 @@ function Main({ email }) {
   const monthNav = (
     <div className="flex items-center gap-1">
       <Button variant="outline" size="icon" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Mes anterior"><ChevronLeft /></Button>
-      <div className="min-w-[128px] text-center text-sm font-semibold">{monthLabel(month)}</div>
+      <div className="min-w-[128px] text-center">
+        <div className="text-sm font-semibold leading-tight">{monthLabel(month)}</div>
+        {per.range(month) && <div className="text-[10px] leading-tight text-muted-foreground">{per.range(month)}</div>}
+      </div>
       <Button variant="outline" size="icon" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= nowMonth} aria-label="Mes següent"><ChevronRight /></Button>
     </div>
   );
@@ -163,7 +172,7 @@ function Main({ email }) {
           {view === 'inversions' && <InvestmentsView inv={store.inv} onRefresh={store.syncInv} onManual={store.addManualSnapshot} />}
 
           {view === 'config' && (
-            <SettingsView cats={cats} goal={goal} setSetting={store.setSetting} setBudget={store.setBudget} summaryBudgetTotal={budgetTotal} onLogout={logout} />
+            <SettingsView cats={cats} goal={goal} cycleOn={cycleOn} cutoff={cutoff} setSetting={store.setSetting} setBudget={store.setBudget} summaryBudgetTotal={budgetTotal} onLogout={logout} />
           )}
 
           {loading && txs.length === 0 && <div className="grid place-items-center py-16"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>}
