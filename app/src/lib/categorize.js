@@ -18,7 +18,17 @@ const RULES = [
   ['COMPRES', /BERSHKA|ZARA|PULL|Levis|TEZENIS|Snipes|VINTAGE|Temu|AMAZON|MediaMarkt|SMARTBOX|SEMTEE|Zumub|TIKTOK|ALE ?HOP|SOLUTONO|Bidoo|TRANSPARENT|ONEDILEMMA|GOCRUSH|ESPORTS QUEROL|EDICIONS|COMPRA|CASSUAL|TALLER CUIR|ZAIRAH|FREUD|DELOCOS|JOIERIA|OSMOSIS|YAKKA|LLAGURT|Vinted|SPRINTER|DECATHLON|FERRETERIA|KYOCA|UDL|PUNTO ESTRELLA|el Taller/i],
 ];
 
-export const normConcept = (s) => (s || '').toUpperCase().replace(/\s+/g, ' ').trim();
+/** Neteja un concepte: arregla accents mal descodificats (TRASPÃ\u0080S → TRASPÀS), treu accents i espais sobrers, com l'historial. */
+export function cleanConcept(s) {
+  let t = String(s || '');
+  if (/[\u00C2\u00C3][\u0080-\u00BF]/.test(t)) {
+    try {
+      if ([...t].every((ch) => ch.charCodeAt(0) < 256)) t = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from([...t].map((ch) => ch.charCodeAt(0))));
+    } catch { /* no era mojibake */ }
+  }
+  return t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u0080-\u009f\uFFFD]/g, '').replace(/\s+/g, ' ').trim();
+}
+export const normConcept = (s) => cleanConcept(s).toUpperCase();
 
 /** Mapa concepte -> codi de categoria més freqüent, après de l'historial ja revisat. */
 export function buildLearned(txs, catById) {

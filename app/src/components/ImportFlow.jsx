@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from './ui/dialog';
 import { CatBadge } from './ui/badge';
 import { cn, eur, fmtDate } from '../lib/utils';
 import { decodeBuffer, parseCsv, guessMapping, guessDateFormat, parseDate, guessNumberFormat, parseAmount } from '../lib/csv';
-import { categorize, normConcept } from '../lib/categorize';
+import { categorize, normConcept, cleanConcept } from '../lib/categorize';
 
 export function Dropzone({ onFile, compact }) {
   const [over, setOver] = useState(false);
@@ -76,8 +76,13 @@ export function MappingModal({ file, onClose, store, accountId }) {
     return m;
   }, [txs, acc]);
 
+  // Entrades manuals (entrada ràpida) que el banc ja ha reportat: mateix compte, mateix import i data igual o ±1 dia
+  const manualPool = useMemo(() => txs.filter((t) => t.source === 'manual' && t.account_id === Number(acc)), [txs, acc]);
+
   const processed = useMemo(() => {
     const seen = new Map();
+    const claimed = new Set();
+    const dayMs = 86400000;
     const out = [];
     let invalid = 0;
     rows.forEach((r, i) => {
@@ -88,20 +93,28 @@ export function MappingModal({ file, onClose, store, accountId }) {
         const d = map.debit >= 0 ? parseAmount(r[map.debit], numFmt) : null, c = map.credit >= 0 ? parseAmount(r[map.credit], numFmt) : null;
         if (d != null || c != null) amount = (c ? Math.abs(c) : 0) - (d ? Math.abs(d) : 0);
       }
-      const concept = (map.concept >= 0 ? r[map.concept] || '' : '').replace(/\s+/g, ' ').trim();
+      const concept = cleanConcept(map.concept >= 0 ? r[map.concept] || '' : '');
       if (!date || amount == null || !concept) { invalid++; return; }
       if (invert) amount = -amount;
       const key = `${date}|${normConcept(concept)}|${Math.round(amount * 100)}`;
       const n = (seen.get(key) || 0) + 1; seen.set(key, n);
       const dup = n <= (existing.get(key) || 0);
       const cz = categorize(concept, amount, learned);
-      out.push({ i, date, concept, amount, code: cz.code, certain: cz.certain, dup });
+      let replaces = null;
+      if (!dup) {
+        const cents = Math.round(amount * 100);
+        const m = manualPool.filter((t) => !claimed.has(t.id) && Math.round(t.amount * 100) === cents && Math.abs(new Date(t.tx_date) - new Date(date)) <= dayMs)
+          .sort((a, b) => Math.abs(new Date(a.tx_date) - new Date(date)) - Math.abs(new Date(b.tx_date) - new Date(date)))[0];
+        if (m) { claimed.add(m.id); replaces = m; }
+      }
+      out.push({ i, date, concept, amount, code: cz.code, certain: cz.certain, dup, replaces });
     });
     return { rows: out, invalid };
-  }, [rows, map, dateFmt, numFmt, invert, existing, learned]);
+  }, [rows, map, dateFmt, numFmt, invert, existing, learned, manualPool]);
 
   const final = processed.rows.map((r) => ({ ...r, code: over[r.i] || r.code, certain: r.certain || !!over[r.i] }));
   const toImport = final.filter((r) => !(skipDup && r.dup));
+  const toReplace = toImport.filter((r) => r.replaces);
   const dups = final.filter((r) => r.dup).length;
   const pending = toImport.filter((r) => !r.certain).length;
   const sum = toImport.reduce((s, r) => s + r.amount, 0);
@@ -118,6 +131,8 @@ export function MappingModal({ file, onClose, store, accountId }) {
       category_id: catByCode.get(r.code)?.id ?? catByCode.get('OCI').id, status: r.certain ? 'saved' : 'pending_ai',
     }));
     const res = await importRows(payload, (d, t) => setProg([d, t]));
+    // l'apunt del banc mana: s'esborren les entrades manuals que representaven el mateix pagament
+    if (res && !res.failed) for (const r of toReplace) await store.removeTx(r.replaces.id);
     setResult(res); setPhase('done');
   }
 
@@ -176,6 +191,7 @@ export function MappingModal({ file, onClose, store, accountId }) {
                 {stat('Filtrades', processed.invalid, processed.invalid ? 'text-destructive' : '')}
                 {stat('Net', eur(sum), sum < 0 ? 'text-destructive' : 'text-success')}
               </div>
+              {toReplace.length > 0 && <p className="flex items-center gap-1.5 text-xs text-warning"><AlertTriangle className="size-3.5" />{toReplace.length} entrades manuals ({toReplace.slice(0, 3).map((r) => r.replaces.concept).join(', ')}{toReplace.length > 3 ? '…' : ''}) coincideixen amb apunts del banc i es substituiran per no comptar-les dues vegades.</p>}
               {dates.length > 0 && <p className="num text-[11px] text-muted-foreground">Del {fmtDate(dates[0])} al {fmtDate(dates[dates.length - 1])}. Pots canviar la categoria de qualsevol fila abans d'importar.</p>}
               {!mapOk && <p className="flex items-center gap-1.5 text-xs text-destructive"><AlertTriangle className="size-3.5" />Cal indicar com a mínim data, concepte i import.</p>}
 
@@ -200,7 +216,7 @@ export function MappingModal({ file, onClose, store, accountId }) {
                               </div>
                             </td>
                             <td className={cn('money num px-2 py-1 text-right', r.amount > 0 && 'text-success')}>{eur(r.amount)}</td>
-                            <td className="px-2 py-1 text-right text-[10.5px]">{r.dup ? <span className="text-muted-foreground">duplicat</span> : !r.certain ? <span className="text-warning">IA</span> : null}</td>
+                            <td className="px-2 py-1 text-right text-[10.5px]">{r.dup ? <span className="text-muted-foreground">duplicat</span> : r.replaces ? <span className="text-warning" title={`Substitueix «${r.replaces.concept}»`}>substitueix</span> : !r.certain ? <span className="text-warning">IA</span> : null}</td>
                           </tr>
                         );
                       })}
