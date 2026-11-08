@@ -163,7 +163,7 @@ export function TxTable({ txs, cats, catById, catByCode, accounts, accountId, mo
                 <tr key={t.id} className={cn('group border-b border-border/60 transition-colors hover:bg-muted/30', st === 'error' && 'bg-destructive/5', st === 'pending_ai' && 'bg-warning/[0.04]')}>
                   <td className="px-1 py-0.5"><EditableText type="date" value={t.tx_date} display={<span className="num text-muted-foreground">{fmtDate(t.tx_date)}</span>} onCommit={(v) => v && onUpdate(t.id, { tx_date: v })} disabled={st === 'saving'} /></td>
                   <td className="max-w-0 px-1 py-0.5">
-                    <EditableText value={t.concept} onCommit={(v) => v.trim() && onUpdate(t.id, { concept: v.trim() })} disabled={st === 'saving'} />
+                    <EditableText value={t.concept} onCommit={(v) => v.trim() && onUpdate(t.id, { concept: v.trim() })} disabled={st === 'saving'} />{t._net && <span className="ml-1.5 rounded-full border border-primary/30 bg-primary/10 px-1.5 py-px text-[9.5px] font-medium text-primary" title={`Anivellat amb «${t._netWith}»`}>⇄ anivellat</span>}
                     {accountId === 'all' && <div className="truncate px-1.5 text-[10px] leading-3 text-muted-foreground">{accName.get(t.account_id)}</div>}
                   </td>
                   <td className="px-1 py-0.5">

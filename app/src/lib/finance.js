@@ -6,6 +6,7 @@ export function summarize(txs, catById, month, accountId) {
   for (const t of txs) {
     if ((t._m || monthOf(t.tx_date)) !== month) continue;
     if (accountId && accountId !== 'all' && t.account_id !== accountId) continue;
+    if (t._net) continue; // anivellat amb un reemborsament
     const c = catById.get(t.category_id);
     if (!c) continue;
     r.count++;

@@ -19,6 +19,7 @@ import { NativeSelect } from './components/ui/input';
 import { Button } from './components/ui/button';
 import { PrivacyToggle } from './lib/privacy';
 import { makePeriods } from './lib/period';
+import { markNetted } from './lib/net';
 
 function useTheme() {
   const [theme, setTheme] = useState(() => (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
@@ -62,7 +63,8 @@ function Main({ email }) {
   const cycleOn = settings.salary_cycle !== false;
   const cutoff = Number(settings.salary_cutoff_day ?? 25);
   const per = useMemo(() => makePeriods(rawTxs, catById, { enabled: cycleOn, cutoff }), [rawTxs, catById, cycleOn, cutoff]);
-  const txs = useMemo(() => per.tag(rawTxs), [per, rawTxs]);
+  const netOn = settings.net_refunds !== false;
+  const txs = useMemo(() => markNetted(per.tag(rawTxs), catById, { enabled: netOn }), [per, rawTxs, catById, netOn]);
   const month = monthSel ?? per.current;
   const goal = Number(settings.goal_monthly_savings ?? 900);
   const bal = useMemo(() => {
@@ -172,7 +174,7 @@ function Main({ email }) {
           {view === 'inversions' && <InvestmentsView inv={store.inv} onRefresh={store.syncInv} onManual={store.addManualSnapshot} />}
 
           {view === 'config' && (
-            <SettingsView cats={cats} goal={goal} cycleOn={cycleOn} cutoff={cutoff} setSetting={store.setSetting} setBudget={store.setBudget} summaryBudgetTotal={budgetTotal} onLogout={logout} />
+            <SettingsView cats={cats} goal={goal} cycleOn={cycleOn} cutoff={cutoff} netOn={netOn} setSetting={store.setSetting} setBudget={store.setBudget} summaryBudgetTotal={budgetTotal} onLogout={logout} />
           )}
 
           {loading && txs.length === 0 && <div className="grid place-items-center py-16"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>}

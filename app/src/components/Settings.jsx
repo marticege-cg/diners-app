@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { eur0 } from '../lib/utils';
 
-export function SettingsView({ cats, goal, cycleOn, cutoff, setSetting, setBudget, summaryBudgetTotal, onLogout }) {
+export function SettingsView({ cats, goal, cycleOn, cutoff, netOn, setSetting, setBudget, summaryBudgetTotal, onLogout }) {
   const [g, setG] = useState(String(goal));
   const [saved, setSaved] = useState(false);
   useEffect(() => setG(String(goal)), [goal]);
@@ -29,6 +29,10 @@ export function SettingsView({ cats, goal, cycleOn, cutoff, setSetting, setBudge
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" checked={cycleOn} onChange={(e) => setSetting('salary_cycle', e.target.checked)} />
             <span>Cada mes comença quan arriba la nòmina<br /><span className="text-xs text-muted-foreground">Una nòmina del 31 d'octubre compta pel novembre: ingressos i despeses es mesuren des d'aquell dia fins a la nòmina següent.</span></span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" className="mt-1" checked={netOn} onChange={(e) => setSetting('net_refunds', e.target.checked)} />
+            <span>Anivella els reemborsaments<br /><span className="text-xs text-muted-foreground">Si pagues 100 € i et fan un Bizum de 100 € (fins a 2 setmanes després, d'un mínim de 10 €), tots dos s'anul·len: no compten com a despesa ni com a ingrés.</span></span>
           </label>
           {cycleOn && (
             <div className="flex items-center gap-2 text-sm">
