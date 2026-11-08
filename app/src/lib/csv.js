@@ -1,3 +1,4 @@
+import { cleanConcept } from './categorize';
 import Papa from 'papaparse';
 
 export function decodeBuffer(buf) {
@@ -6,6 +7,8 @@ export function decodeBuffer(buf) {
 }
 
 const DATE_RE = /^\s*\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}/;
+// una cel·la que és NOMÉS una data (no un rang com "01/11/2026 - 08/11/2026")
+const DATE_FULL = /^\s*\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}(\s+\d{1,2}:\d{2}(:\d{2})?)?\s*$/;
 const looksNum = (s) => /^[\s\-+(]*[\d.,]+\s*(eur|€)?\s*\)?-?\s*$/i.test(s || '');
 
 /** Parseja el text, detecta el delimitador i la fila de capçalera (salta metadades). */
@@ -18,7 +21,7 @@ export function parseCsv(text) {
     if (!best || score > best.score) best = { score, rows: res.data, delimiter };
   }
   const rows = best.rows;
-  const isDateRow = (r) => r.some((c) => DATE_RE.test(c || ''));
+  const isDateRow = (r) => r.some((c) => DATE_FULL.test(c || ''));
   let headerIdx = -1, firstData = 0;
   for (let i = 0; i < Math.min(rows.length, 25); i++) {
     const r = rows[i];
@@ -29,7 +32,7 @@ export function parseCsv(text) {
   const hasHeader = headerIdx >= 0;
   const width = Math.max(...rows.slice(firstData).map((r) => r.length), 0);
   const base = hasHeader ? rows[headerIdx] : [];
-  const headers = Array.from({ length: width }, (_, i) => (base[i] || '').trim() || `Columna ${i + 1}`);
+  const headers = Array.from({ length: width }, (_, i) => cleanConcept(base[i] || '') || `Columna ${i + 1}`);
   const data = rows.slice(firstData).filter((r) => r.some((c) => c && c.trim()));
   const meta = rows.slice(0, hasHeader ? headerIdx : firstData).map((r) => r.join(' ')).join(' ');
   return { headers, rows: data, meta, delimiter: best.delimiter };
