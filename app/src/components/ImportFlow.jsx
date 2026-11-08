@@ -8,31 +8,35 @@ import { CatBadge } from './ui/badge';
 import { cn, eur, fmtDate } from '../lib/utils';
 import { decodeBuffer, parseCsv, guessMapping, guessDateFormat, parseDate, guessNumberFormat, parseAmount } from '../lib/csv';
 import { categorize, normConcept, cleanConcept } from '../lib/categorize';
+import { ACCEPT, isSupported, fileToCsvBuffer } from '../lib/files';
 
 export function Dropzone({ onFile, compact }) {
   const [over, setOver] = useState(false);
   const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
   const input = useRef(null);
   const handle = useCallback(async (file) => {
     setErr('');
     if (!file) return;
-    if (!/\.(csv|txt)$/i.test(file.name) && !/csv|text/.test(file.type)) { setErr('Només s\'accepten fitxers .csv'); return; }
-    try { onFile(file.name, await file.arrayBuffer()); } catch { setErr('No s\'ha pogut llegir el fitxer.'); }
+    if (!isSupported(file)) { setErr('Formats admesos: CSV, Excel (.xlsx, .xls), ODS i PDF.'); return; }
+    setBusy(true);
+    try { onFile(file.name, await fileToCsvBuffer(file)); } catch (e) { setErr(e?.message || 'No s\'ha pogut llegir el fitxer.'); }
+    setBusy(false);
   }, [onFile]);
   return (
     <Card
       className={cn('border-dashed transition-colors', over && 'border-primary bg-primary/5')}
       onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); handle(e.dataTransfer.files?.[0]); }}>
-      <button type="button" onClick={() => input.current?.click()} className={cn('flex w-full items-center gap-3 px-4 text-left', compact ? 'py-3' : 'py-6')} aria-label="Puja un extracte CSV">
+      <button type="button" onClick={() => input.current?.click()} className={cn('flex w-full items-center gap-3 px-4 text-left', compact ? 'py-3' : 'py-6')} aria-label="Puja un extracte (CSV, Excel o PDF)">
         <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg bg-muted', over && 'bg-primary/20 text-primary')}><UploadCloud className="size-5" /></span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium">Arrossega aquí l'extracte <span className="font-mono text-primary">.csv</span> del banc</span>
+          <span className="block text-sm font-medium">{busy ? 'Llegint el fitxer…' : <>Arrossega aquí l'extracte del banc <span className="font-mono text-primary">.csv · .xlsx · .pdf</span></>}</span>
           <span className="block text-xs text-muted-foreground">o fes clic per triar-lo · et deixaré revisar les columnes abans de desar res</span>
           {err && <span className="mt-1 block text-xs text-destructive">{err}</span>}
         </span>
       </button>
-      <input ref={input} type="file" accept=".csv,text/csv,text/plain" hidden onChange={(e) => { handle(e.target.files?.[0]); e.target.value = ''; }} />
+      <input ref={input} type="file" accept={ACCEPT} hidden onChange={(e) => { handle(e.target.files?.[0]); e.target.value = ''; }} />
     </Card>
   );
 }
