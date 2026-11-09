@@ -9,6 +9,7 @@ import { Login, NewPassword } from './components/Login';
 import { Sidebar, BottomNav, AccountSelector } from './components/Sidebar';
 import { Kpis } from './components/Kpis';
 import { QuickAdd } from './components/QuickAdd';
+import { CashCounter } from './components/CashCounter';
 import { Dropzone, MappingModal } from './components/ImportFlow';
 import { TxTable } from './components/TxTable';
 import { MonthlyBars, Breakdown } from './components/Charts';
@@ -152,6 +153,7 @@ function Main({ email }) {
           {view === 'dashboard' && (<>
             <Kpis cur={cur} prev={prev} goal={goal} />
             <QuickAdd cats={cats} accounts={accounts} account={account} learned={learned} onAdd={store.addTx} />
+            {(() => { const cash = accounts.find((a) => a.kind === 'cash'); return cash && <CashCounter account={cash} balance={bal[cash.id] ?? 0} catByCode={catByCode} onAdd={store.addTx} />; })()}
             <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-4">
               <div className="min-w-0 space-y-3 xl:space-y-4">
                 <Dropzone onFile={(name, buffer) => setFile({ name, buffer })} compact />
